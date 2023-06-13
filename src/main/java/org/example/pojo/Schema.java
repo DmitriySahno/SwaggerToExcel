@@ -20,6 +20,7 @@ public class Schema {
     private List<String> eNum;
     private LinkedHashSet<Property> properties;
     private String description;
+    private String summary;
 
     @Accessors(chain = true)
     @Builder
@@ -37,6 +38,7 @@ public class Schema {
         private String defaultValue;
         private Schema schema;
         private String schemaRef;
+        private LinkedHashSet<Property> properties;
 
         public Property(String name) { this.name = name; }
     }

@@ -1,0 +1,783 @@
+openapi: 3.0.0
+info:
+  title: ABM WMS
+  description: Спецификация REST API для обмена с учетной системой.
+  contact: {}
+  version: '2.9.0.0'
+servers:
+- url: http://dmz.abmretail.com:8080/wms_api_demo/hs/WMSExchange
+  description: QA
+  variables: {}
+paths:
+  /POSTOrdersModifications:
+    post:
+      tags:
+      - Документы
+      summary: POSTOrdersModifications
+      description: Получение списка изменений по документам
+      operationId: POSTOrdersModifications
+      parameters: []
+      responses:
+        '200':
+          description: Успех
+          headers: {}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/POSTOrdersModificationsResponse'
+        '409':
+          description: Ошибка обработки данных
+          headers: {}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      deprecated: false
+  /POSTOrder:
+    post:
+      tags:
+      - Документы
+      summary: POSTOrder
+      description: Отправка распоряжения в WMS
+      operationId: POSTOrder
+      parameters: []
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/POSTOrderRequest'
+        required: false
+      responses:
+        '200':
+          description: Успех
+          headers: {}
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Success'
+        '409':
+          description: Ошибка обработки данных
+          headers: {}
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+      deprecated: false
+  /POSTInfoOnOrder:
+    post:
+      tags:
+      - Документы
+      summary: POSTInfoOnOrder
+      description: Получение информации по документу
+      operationId: POSTInfoOnOrder
+      parameters: []
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/POSTInfoOnOrderRequest'
+        required: false
+      responses:
+        '200':
+          description: Успех
+          headers: {}
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/InfoOnOrder'
+                - $ref: '#/components/schemas/InfoOnInv'
+                - $ref: '#/components/schemas/InfoOnRouteSheet'
+                - $ref: '#/components/schemas/InfoOnPS'
+                - $ref: '#/components/schemas/InfoOnMoving'
+                - $ref: '#/components/schemas/InfoOnProduct'
+        '409':
+          description: Ошибка обработки данных
+          headers: {}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      deprecated: false
+  /POSTOrderResultAS:
+    post:
+      tags:
+      - Документы
+      summary: POSTOrderResultAS
+      description: Отправка отметки об обработке документа в учетную систему
+      operationId: POSTOrderResultAS
+      parameters: []
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/POSTOrderResultASRequest'
+        required: false
+      responses:
+        '200':
+          description: Успех
+          headers: {}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '409':
+          description: Ошибка обработки данных
+          headers: {}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      deprecated: false
+  /POSTConfirmStage:
+    post:
+      tags:
+      - Документы
+      summary: POSTConfirmStage
+      description: Отправка подтверждения этапа из учетной системы
+      operationId: POSTConfirmStage
+      parameters: []
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/POSTConfirmStageRequest'
+        required: false
+      responses:
+        '200':
+          description: Успех
+          headers: {}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '409':
+          description: Ошибка обработки данных
+          headers: {}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      deprecated: false
+  /POSTRouteSheet:
+    post:
+      tags:
+      - Документы
+      summary: POSTRouteSheet
+      description: Отправка маршрутного листа в WMS
+      operationId: POSTRouteSheet
+      parameters: []
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/POSTRouteSheetRequest'
+        required: false
+      responses:
+        '200':
+          description: Успех
+          headers: {}
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Success'
+        '409':
+          description: Ошибка обработки данных
+          headers: {}
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+      deprecated: false
+  /POSTInfoRestOfGoods:
+    post:
+      tags:
+      - Товары
+      summary: POSTInfoRestOfGoods
+      description: Отправка остатков учетной системы и информации по номенклатуре в WMS
+      operationId: POSTInfoRestOfGoods
+      parameters: []
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/POSTInfoRestOfGoodsRequest'
+        required: false
+      responses:
+        '200':
+          description: Успех
+          headers: {}
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Success'
+        '409':
+          description: Ошибка обработки данных
+          headers: {}
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+      deprecated: false
+  /POSTProductPrice:
+    post:
+      tags:
+      - Товары
+      summary: POSTProductPrice
+      description: Отправка цены номенклатуры в WMS
+      operationId: POSTProductPrice
+      parameters: []
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/POSTProductPriceRequest'
+        required: false
+      responses:
+        '200':
+          description: Успех
+          headers: {}
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Success'
+        '409':
+          description: Ошибка обработки данных
+          headers: {}
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+      deprecated: false
+  /POSTRemnantsOfGoods:
+    post:
+      tags:
+      - Товары
+      summary: POSTRemnantsOfGoods
+      description: Отправка остатков учетной системы бех детализации по номенклатуре в WMS
+      operationId: POSTRemnantsOfGoods
+      parameters: []
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/POSTRemnantsOfGoodsRequest'
+        required: false
+      responses:
+        '200':
+          description: Успех
+          headers: {}
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Success'
+        '409':
+          description: Ошибка обработки данных
+          headers: {}
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+      deprecated: false
+  /POSTGetRemains:
+    post:
+      tags:
+      - Товары
+      summary: POSTGetRemains
+      description: Получение остатков WMS
+      operationId: POSTGetRemains
+      parameters: []
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/POSTGetRemainsRequest'
+        required: false
+      responses:
+        '200':
+          description: Успех
+          headers: {}
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Remain'
+                description: ''
+        '409':
+          description: Ошибка обработки данных
+          headers: {}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      deprecated: false
+  /POSTInfoContractor:
+    post:
+      tags:
+      - Контрагенты
+      summary: POSTInfoContractor
+      description: Отправка информации о контрагентах
+      operationId: POSTInfoContractor
+      parameters: []
+      responses:
+        '200':
+          description: Успех
+          headers: {}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/POSTInfoContractorResponse'
+        '409':
+          description: Ошибка обработки данных
+          headers: {}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      deprecated: false
+  /POSTCrossTransit:
+    post:
+      tags:
+      - Кросс-транзит
+      summary: POSTCrossTransit
+      description: Отправка распоряжения кросс-транзит в WMS
+      operationId: POSTCrossTransit
+      parameters: []
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/POSTCrossTransitRequest'
+        required: false
+      responses:
+        '200':
+          description: Успех
+          headers: {}
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Success'
+        '409':
+          description: Ошибка обработки данных
+          headers: {}
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+      deprecated: false
+  /POSTCrossTransitModifications:
+    post:
+      tags:
+      - Кросс-транзит
+      summary: POSTCrossTransitModifications
+      description: Получение списка изменений по документам кросс-транзит
+      operationId: POSTCrossTransitModifications
+      parameters: []
+      responses:
+        '200':
+          description: Успех
+          headers: {}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/POSTCrossTransitModificationsResponse'
+        '409':
+          description: Ошибка обработки данных
+          headers: {}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      deprecated: false
+  /POSTInfoOnCrossTransit:
+    post:
+      tags:
+      - Кросс-транзит
+      summary: POSTInfoOnCrossTransit
+      description: Получение информации по распоряжению кросс-транзит
+      operationId: POSTInfoOnCrossTransit
+      parameters: []
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/POSTInfoOnCrossTransitRequest'
+        required: false
+      responses:
+        '200':
+          description: Успех
+          headers: {}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/POSTInfoOnCrossTransitResponse'
+        '409':
+          description: Ошибка обработки данных
+          headers: {}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      deprecated: false
+  /POSTCrossTranzitResultAS:
+    post:
+      tags:
+      - Кросс-транзит
+      summary: POSTCrossTranzitResultAS
+      description: Отправка отметки об обработке документа кросс-транзит в учетную систему
+      operationId: POSTCrossTranzitResultAS
+      parameters: []
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/POSTCrossTranzitResultASRequest'
+        required: false
+      responses:
+        '200':
+          description: Успех
+          headers: {}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '409':
+          description: Ошибка обработки данных
+          headers: {}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      deprecated: false
+  /POSTGetResourseProductivity:
+    post:
+      tags:
+      - Ресурсы
+      summary: POSTGetResourseProductivity
+      description: Отправка отправки информации по биллингу ресурсов в учетную систему
+      operationId: POSTGetResourseProductivity
+      parameters: []
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/POSTGetResourseProductivityRequest'
+        required: false
+      responses:
+        '200':
+          description: Успех
+          headers: {}
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ResourseProductivity'
+                description: ''
+        '409':
+          description: Ошибка обработки данных
+          headers: {}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      deprecated: false
+  /POSTReclamation:
+    post:
+      tags:
+      - Рекламации
+      summary: POSTReclamation
+      description: Отправка рекламации в WMS
+      operationId: POSTReclamation
+      parameters: []
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/POSTReclamationRequest'
+        required: false
+      responses:
+        '200':
+          description: Успех
+          headers: {}
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Success'
+        '409':
+          description: Ошибка обработки данных
+          headers: {}
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+      deprecated: false
+  /POSTInfoOnReclamation:
+    post:
+      tags:
+      - Рекламации
+      summary: POSTInfoOnReclamation
+      description: Получение информации по рекламации
+      operationId: POSTInfoOnReclamation
+      parameters: []
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/POSTInfoOnReclamationRequest'
+        required: false
+      responses:
+        '200':
+          description: Успех
+          headers: {}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/POSTInfoOnReclamationResponse'
+        '409':
+          description: Ошибка обработки данных
+          headers: {}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      deprecated: false
+components:
+  schemas:
+    Success:
+      title: Success
+      type: object
+      properties:
+        Success:
+          type: boolean
+          description: Успешность обработки пакета
+          default: true
+        Code:
+          allOf:
+          - $ref: '#/components/schemas/Code'
+          - description: Код обработки запроса на стороне WMS
+        Description:
+          type: string
+          description: Описание кода обработки
+    Error:
+      title: Error
+      type: object
+      properties:
+        Success:
+          type: boolean
+          description: Успешность обработки пакета
+          default: false
+        Code:
+          allOf:
+          - $ref: '#/components/schemas/Code1'
+          - description: Код обработки запроса на стороне WMS
+        Description:
+          type: string
+          description: Описание кода обработки
+    Product:
+      title: Product
+      type: object
+      properties:
+        GUIDProduct:
+          type: string
+          description: Уникальный идентификатор товара
+          format: uuid
+        CodeMS:
+          maxLength: 100
+          type: string
+          description: Идентификатор учетной системы
+        Description:
+          maxLength: 150
+          type: string
+          description: Наименование товара
+        FullDescription:
+          maxLength: 250
+          type: string
+          description: Полное наименование товара (если используется)
+        AdditionalDescription:
+          maxLength: 250
+          type: string
+          description: Дополнительное описание
+        ParentGUID:
+          type: string
+          description: Уникальный идентификатор группы товара
+          format: uuid
+        Article:
+          maxLength: 40
+          type: string
+          description: Артикул товара
+        GUIDPackaging:
+          type: string
+          description: Уникальный идентификатор единицы товара по умолчанию
+          format: uuid
+        Brand:
+          maxLength: 150
+          type: string
+          description: Бренд производителя товара
+        Kind:
+          maxLength: 20
+          type: string
+          description: Код категории ERP - используется для сопоставления категорий ERP-WMS
+        Subkind:
+          maxLength: 20
+          type: string
+          description: Код подкатегории ERP - используется для сопоставления подкатегорий ERP-WMS (код не должен пересекаться с кодами категории)
+        Type:
+          allOf:
+          - $ref: '#/components/schemas/Type'
+          - maxLength: 1
+            description: >-
+              Тип товара:
+                * 1 – штучный
+                * 2 – весовой
+                * 3 – штучный средневесовой
+                * 4 – отрезной
+        SeriesMode:
+          type: boolean
+          description: Признак ведения учета по сериям
+        ShelfLifeMode:
+          type: boolean
+          description: Признак ведения учета по срокам годности
+        SeriesNumberMode:
+          type: boolean
+          description: Признак ведения учета в разрезе серийных номеров
+        UniqueSNMode:
+          type: boolean
+          description: Признак ведения учета в разрезе уникальных серийных номеров
+        StoragePeriodInDays:
+          maxLength: 15
+          type: string
+          description: Срок хранения в днях
+        MinShipGUIDPackaging:
+          type: string
+          description: Уникальный идентификатор единицы измерения товара, который используется для минимальной единицы отгрузки
+          format: uuid
+        NoBarcode:
+          type: boolean
+          description: Отключает верификацию товара сканированием штрихкода на ТСД
+          default: false
+        QuantityOnPallet:
+          multipleOf: 0.001
+          type: number
+          description: Количество товара на паллете
+        IsSet:
+          type: boolean
+          description: Признак набора
+        ABCClassifier:
+          allOf:
+          - $ref: '#/components/schemas/ABCClassifier'
+          - maxLength: 1
+            description: >-
+              Класс оборачиваемости товара (ABC):
+                * A
+                * B
+                * C
+        AllowableReceiptPercentageShelfLife:
+          multipleOf: 0.001
+          type: number
+          description: Допустимый процент остатка срока годности (для прихода)
+        SerialNumberType:
+          allOf:
+          - $ref: '#/components/schemas/SerialNumberType'
+          - maxLength: 1
+            description: >-
+              Тип серийного номера :
+                * U - уникальный (для новых марок)
+                * C - обычный (не используется)
+        HasPhoto:
+          type: boolean
+          description: Признак наличия фото
+        PackingMaterial:
+          maxLength: 150
+          type: string
+          description: Материал упаковки
+        TemperatureModeFrom:
+          multipleOf: 0.1
+          type: number
+          description: Температурный режим (от)
+        TemperatureModeTo:
+          multipleOf: 0.1
+          type: number
+          description: Температурный режим (до)
+        BP001:
+          type: string
+          description: 'Значение дополнительного свойства партии. Ключом (тут: BP001) выступает идентификатор дополнительного свойства партии в учетной системе. Типы значений: строка, число, UUID, дата в формате ISO, булево. Может быть несколько.'
+      description: Товар
+    StageDoc:
+      title: StageDoc
+      enum:
+      - Прием контроль
+      - ОтгрузкаОтбор
+      type: string
+      description: Этап документа, на котором зарегистрированы изменения
+    State:
+      title: State
+      enum:
+      - Активен
+      - Завершен
+      - Отменен
+      - К запуску
+      - Вожидании
+      type: string
+      description: Текущее состояние документа
+    TableCargo:
+      title: TableCargo
+      type: object
+      properties:
+        Cargo:
+          allOf:
+          - $ref: '#/components/schemas/Cargo'
+          - description: Информация о грузоместе
+
+//SCHEMAS EXAMPLE
+//    POSTOrderRequest:
+//      title: POSTOrderRequest
+//      type: object
+//      properties:
+//        WareHouseCode:
+//          maxLength: 9
+//          type: string
+//          description: Код склада WMS
+//        Invoice:
+//          $ref: '#/components/schemas/Invoice2'
+
+//    POSTOrdersModificationsResponse:
+//      title: POSTOrdersModificationsResponse
+//      type: object
+//      properties:
+//        TableDocInfo:
+//          type: array
+//          items:
+//            $ref: '#/components/schemas/OrderModifications'
+//          description: ''
+
+//    POSTReclamationRequest:
+//      title: POSTReclamationRequest
+//      type: object
+//      properties:
+//        TypeOperation:
+//          allOf:
+//          - $ref: '#/components/schemas/TypeOperation10'
+//          - description: Тип операции — всегда передавать RECLAMATION
+//        WareHouseCode:
+//          maxLength: 9
+//          type: string
+//          description: Код склада WMS
+//        Reclamation:
+//          $ref: '#/components/schemas/Reclamation'

@@ -1,0 +1,3779 @@
+openapi: 3.0.1
+info:
+  title: ABM WMS
+  description: Спецификация REST API для обмена с учетной системой.
+  version: 2.9.0.0
+externalDocs:
+  description: Support
+  url: https://support.wms.abmcloud.com/
+servers:
+
+paths:
+  /POSTOrdersModifications:
+    post:
+      tags:
+      - Документы
+      summary: Получение списка изменений по документам
+      operationId: POSTOrdersModifications
+      responses:
+        200:
+          description: Успех
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  TableDocInfo:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/OrderModifications'
+        409:
+          description: Ошибка обработки данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                
+  /POSTInfoRestOfGoods:
+    post:
+      tags:
+      - Товары
+      summary: Отправка остатков учетной системы и информации по номенклатуре в WMS
+      operationId: POSTInfoRestOfGoods
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                WareHouseCode:
+                  maxLength: 9
+                  type: string
+                  description: Код склада WMS
+                Info:
+                  type: object
+                  properties:
+                    GroupsProducts:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/ProductGroup'
+                    ClassifierPackage:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/ClassifierPackage'
+                    Products:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Product'
+                    Packing:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Packing'
+                    BarcodeTable:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Barcode'
+                    WeightItemCodeTable:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/WeightItemCode'
+                    TableProduct:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/ProductRow'
+                    TableSN:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/SN'
+                    TableSetProducts:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/ProductSet'
+        required: false
+      responses:
+        200:
+          description: Успех
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Success'
+        409:
+          description: Ошибка обработки данных
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-codegen-request-body-name: body
+
+  /POSTProductPrice:
+    post:
+      tags:
+        - Товары
+      summary: Отправка цены номенклатуры в WMS
+      operationId: POSTProductPrice
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                WareHouseCode:
+                  maxLength: 9
+                  type: string
+                  description: Код склада WMS
+                Prices:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Prices'
+
+        required: false
+      responses:
+        200:
+          description: Успех
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Success'
+        409:
+          description: Ошибка обработки данных
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-codegen-request-body-name: body
+
+  /POSTRemnantsOfGoods:
+    post:
+      tags:
+      - Товары
+      summary: Отправка остатков учетной системы бех детализации по номенклатуре в
+        WMS
+      operationId: POSTRemnantsOfGoods
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                WareHouseCode:
+                  maxLength: 9
+                  type: string
+                  description: Код склада WMS
+                Info:
+                  type: object
+                  properties:
+                    TableProduct:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/ProductRemnantsRow'
+        required: false
+      responses:
+        200:
+          description: Успех
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Success'
+        409:
+          description: Ошибка обработки данных
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-codegen-request-body-name: body
+      
+  /POSTInfoContractor:
+    post:
+      tags:
+      - Контрагенты
+      summary: Отправка информации о контрагентах
+      operationId: POSTInfoContractor
+      responses:
+        200:
+          description: Успех
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  InfoContractors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Contractor'
+        409:
+          description: Ошибка обработки данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                
+  /POSTGetRemains:
+    post:
+      tags:
+      - Товары
+      summary: Получение остатков WMS
+      operationId: POSTGetRemains
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                WareHouseCode:
+                  maxLength: 9
+                  type: string
+                  description: Код склада WMS
+                Free:
+                  type: boolean
+                  description: |
+                    * true - получение свободных остатков
+                    * false - получение всех остатков
+                ShowServiceCells:
+                  type: boolean
+                  description: |
+                    * true - получение остатков с учетом служебных ячеек (ячейки недостачи, брака, буферная зона, зона приема товара, зона контроля, зона коррекции остатков)
+                    * false - получение остатков без учета служебных ячеек
+                MSWarehouseCodeArray:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      MSWarehouseCode:
+                        maxLength: 36
+                        type: string
+                        description: Идентификатор склада учетной системы
+                Date:
+                  type: string
+                  description: Дата остатков
+                  format: date-time
+        required: false
+      responses:
+        200:
+          description: Успех
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Remain'
+        409:
+          description: Ошибка обработки данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-codegen-request-body-name: body
+      
+  /POSTOrder:
+    post:
+      tags:
+      - Документы
+      summary: Отправка распоряжения в WMS
+      operationId: POSTOrder
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                WareHouseCode:
+                  maxLength: 9
+                  type: string
+                  description: Код склада WMS
+                Invoice:
+                  type: object
+                  properties:
+                    TypeOperation:
+                      type: string
+                      description: |
+                        Тип операции:
+                          * IN – прием товаров
+                          * OUT – отгрузка товаров
+                          * MOVING – перемещение
+                          * PRODUCTION – комплектация (производство)
+                      enum:
+                      - IN
+                      - OUT
+                      - MOVING
+                      - PRODUCTION
+                    GUID:
+                      type: string
+                      description: Уникальный идентификатор документа
+                      format: uuid
+                    NumberDoc:
+                      maxLength: 20
+                      type: string
+                      description: Номер документа в учетной системе, который выводится
+                        на печатную форму документа
+                    DateDoc:
+                      type: string
+                      description: Дата документа
+                      format: date-time
+                    NameDoc:
+                      maxLength: 150
+                      type: string
+                      description: Названия документа распоряжения, как он обозначается
+                        (называется) в учетной системе
+                    DocBarCode:
+                      maxLength: 20
+                      type: string
+                      description: Штрихкод документа в учетной системе, если используется
+                    Status:
+                      type: string
+                      description: Используется, если контроль производится в учетной
+                        системе и в WMS выгружается пакет с результатом контроля
+                      example: ОтгрузкаКонтроль
+                    DateDocOUT:
+                      type: string
+                      description: Дата, когда нужно отгружать заказ — заполняется
+                        для документа отгрузки
+                      format: date-time
+                    NumberDocIn:
+                      maxLength: 20
+                      type: string
+                      description: Номер входящего документа поставщика
+                    DateDocIN:
+                      type: string
+                      description: Дата входящего документа поставщика
+                      format: date-time
+                    SuspendedStatus:
+                      type: string
+                      description: |
+                        Опциональная отметка  о приостановке или отмене документа:
+                          * Blocked – приостановка документа
+                          * Canceled – отмена документа
+                      example: Blocked
+                      enum:
+                      - Blocked
+                      - Canceled
+                    GUIDOrganization:
+                      type: string
+                      description: Уникальный идентификатор организации
+                      format: uuid
+                    Organization:
+                      maxLength: 150
+                      type: string
+                      description: Название организации
+                    MSSourceWarehouseCode:
+                      maxLength: 36
+                      type: string
+                      description: Уникальный идентификатор или код склада, из которого
+                        перемещается товар (если есть)
+                    MSSourceWarehouse:
+                      maxLength: 150
+                      type: string
+                      description: Наименование склада УС из которого перемещается
+                        товар
+                    MSDestinationWarehouseCode:
+                      maxLength: 36
+                      type: string
+                      description: Уникальный идентификатор или код склада, на который
+                        перемещается товар (если есть)
+                    MSDestinationWarehouse:
+                      maxLength: 150
+                      type: string
+                      description: Наименование склада УС, на который перемещается
+                        товар
+                    Contractor:
+                      $ref: '#/components/schemas/Contractor'
+                    Bailors:
+                      type: object
+                      properties:
+                        GUIDBailorSender:
+                          type: string
+                          description: Уникальный идентификатор поклажедателя-отправителя
+                          format: uuid
+                        GUIDBailorRecipient:
+                          type: string
+                          description: Уникальный идентификатор поклажедателя-получателя
+                          format: uuid
+                    Priority:
+                      maximum: 99
+                      type: integer
+                      description: 'Приоритет документа: 0 — самый высокий, 99 — самый
+                        низкий'
+                    Destination:
+                      maxLength: 150
+                      type: string
+                      description: Назначение
+                    Comment:
+                      type: string
+                      description: Комментарий к заказу из учетной системы
+                    GUIDAgreement:
+                      type: "string"
+                      maxLength: 36
+                      description: Уникальный идентификатор договора контрагнта или соглашения
+                    Agreement:
+                      type: string
+                      maxLength: 150
+                      description: Название договора контрагента или соглашения
+
+                    CommunicationMethod:
+                          maxLength: 20
+                          type: string
+                          description: |
+                            Способ коммуникации с клиентом:
+                              * Phone - Телефон
+                              * Message - Мессенджер
+                              * [Не заполнено] - Не связываться
+                          enum:
+                          - Phone
+                          - Message
+                   
+                    SubstitutionProcessing:
+                          maxLength: 20
+                          type: string
+                          description: |
+                            Вариант обработки замены на ТСД:
+                              * DontDo - Не делать
+                              * AgreeWithClient - Согласовать с клиентом
+                              * DoItYourself - Выполнить самостоятельно
+                          enum:
+                          - DontDo
+                          - AgreeWithClient
+                          - DoItYourself
+                    SubstitutionReserve:
+                          maxLength: 20
+                          type: string
+                          description: |
+                            Резервный способ обработки замен на ТСД:
+                              * DontDo - Не делать
+                              * DoItYourself - Выполнить самостоятельно
+                          enum:
+                          - DontDo
+                          - DoItYourself
+                    WareHouseDestinationCode:
+                      maxLength: 9
+                      type: string
+                      description: Код склада, на который осуществляется перемещение
+                    ProcessCode:
+                      maxLength: 3
+                      type: string
+                      description: Код настройки операции, по которой будет обрабатываться
+                        документ
+                    GroupsProducts:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/ProductGroup'
+                    ClassifierPackage:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/ClassifierPackage'
+                    Products:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Product'
+                    Packing:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Packing'
+                    BarcodeTable:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Barcode'
+                    WeightItemCodeTable:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/WeightItemCode'
+                    TableProduct:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/ProductOrderRow'
+                    DeliveryOptions:
+                      type: object
+                      properties:
+                        DMGUID:
+                          type: string
+                          description: Уникальный идентификатор способа доставки
+                          format: uuid
+                        DeliveryMethod:
+                          maxLength: 100
+                          type: string
+                          description: Наименование способа доставки
+                        RouteGUID:
+                          type: string
+                          description: Уникальный идентификатор маршрута
+                          format: uuid
+                        RouteMethod:
+                          maxLength: 100
+                          type: string
+                          description: Наименование маршрута
+                        CarrierGUID:
+                          type: string
+                          description: Уникальный идентификатор перевозчика
+                          format: uuid
+                        Carrier:
+                          maxLength: 150
+                          type: string
+                          description: Перевозчик
+                        Recipient:
+                          type: object
+                          properties:
+                            RecipientGUID:
+                              type: string
+                              description: Уникальный идентификатор контакта контрагента
+                              format: uuid
+                            RecipientName:
+                              maxLength: 150
+                              type: string
+                              description: Наименование контакта контрагента
+                            AddressRecipient:
+                              $ref: '#/components/schemas/AddressContractor'
+                    DeliveryData:
+                      type: object
+                      properties:
+                        DeliveryService:
+                          maxLength: 10
+                          type: string
+                          description: |
+                            Идентификатор службы доставки:
+                              * NP – Новая почта
+                          enum:
+                          - NP
+                        PayerType:
+                          maxLength: 20
+                          type: string
+                          description: |
+                            Тип плательщика за доставку:
+                              * Sender – Отправитель
+                              * Recipient – Получатель
+                              * ThirdPerson – Третье лицо
+                          enum:
+                          - Sender
+                          - Recipient
+                          - ThirdPerson
+                        PaymentMethod:
+                          maxLength: 20
+                          type: string
+                          description: |
+                            Способ оплаты:
+                              * NonCash – Безналичный
+                              * Cash – Наличный
+                              * NonCashLegal - Безналичный для юр. лиц
+                              * CardOnSite - Оплаты картой на сайте
+                          enum:
+                          - NonCash
+                          - Cash
+                          - NonCashLegal
+                          - CardOnSite
+                        ShipmentDate:
+                          type: string
+                          description: Дата и время плановой отправки груза
+                          format: date-time
+                        ServiceType:
+                          maxLength: 20
+                          type: string
+                          description: |
+                            Вид доставки:
+                              * DoorsDoors – От двери до двери
+                              * DoorsWarehouse – От двери до отделения
+                              * WarehouseWarehouse – От отделения до отделения
+                              * WarehouseDoors – От отделения до двери
+                          enum:
+                          - DoorsDoors
+                          - DoorsWarehouse
+                          - WarehouseWarehouse
+                          - WarehouseDoors
+                        GUIDSender:
+                          type: string
+                          description: Иидентификатор контрагента в почтовой службе,
+                            1 отправителем (по справочным данным служб доставок)
+                          format: uuid
+                        GUIDSenderPoint:
+                          type: string
+                          description: Идентификатор улицы или отделения службы доставки
+                          format: uuid
+                        GUIDContactSender:
+                          type: string
+                          description: Идентификатор контакта контрагента-отправителя
+                            в почтовой службе
+                          format: uuid
+                        SendersPhone:
+                          maxLength: 12
+                          type: string
+                          description: Телефон контакта контрагента-отправителя
+                        GUIDRecipientPoint:
+                          type: string
+                          description: Идентификатор улицы или отделения службы доставки
+                            (по справочным данным служб доставок)
+                          format: uuid
+                        RecipientsPhone:
+                          maxLength: 12
+                          type: string
+                          description: Телефон контакта контрагента-получателя
+                        Description:
+                          maxLength: 250
+                          type: string
+                          description: Описание отправки в виде текста
+                        IntDocNumber:
+                          maxLength: 50
+                          type: string
+                          description: Номер документа ТТН, созданный на стороне службы
+                            доставки
+                        GUIDIntDocNumber:
+                          type: string
+                          description: Идентификатор ТТН, созданный на стороне службы
+                            доставки
+                          format: uuid
+                        ToPay:
+                          multipleOf: 0.01
+                          type: number
+                          description: Cумма к оплате клиентом
+                          format: float
+                        
+                        IsPaid:
+                          type: boolean
+                          description: Признак того, что заказ оплачен
+
+
+                        DocumentsIsRequired:
+                          type: boolean
+                          description: Признак необходимости распечатать документы
+                        DeliveryTimeRange:
+                          type: object
+                          properties:
+                            StartTime:
+                              type: string
+                              description: Начальное значение временного диапазона
+                                доставки
+                              format: date-time
+                            EndTime:
+                              type: string
+                              description: Конечное значение временного диапазона
+                                доставки
+                              format: date-time
+                      description: Дополнительные данные по работе со службами доставок
+                    TableSetProducts:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/ProductSet'
+                    TableProductProduction:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/ProductRow'
+                    TableSN:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/SNOrder'
+                    TablePBL:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/PBLRow'
+                    TableTare:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/TareRow'
+        required: false
+      responses:
+        200:
+          description: Успех
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Success'
+        409:
+          description: Ошибка обработки данных
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-codegen-request-body-name: body
+      
+  /POSTInfoOnOrder:
+    post:
+      tags:
+      - Документы
+      summary: Получение информации по документу
+      operationId: POSTInfoOnOrder
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                GUIDentry:
+                  type: string
+                  description: Уникальный идентификатор записи изменений
+                  format: uuid
+                GUIDorder:
+                  type: string
+                  description: Уникальный идентификатор документа
+                  format: uuid
+        required: false
+      responses:
+        200:
+          description: Успех
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/InfoOnOrder'
+                  - $ref: '#/components/schemas/InfoOnInv'
+                  - $ref: '#/components/schemas/InfoOnRouteSheet'
+                  - $ref: '#/components/schemas/InfoOnPS'
+                  - $ref: '#/components/schemas/InfoOnMoving'
+                  - $ref: '#/components/schemas/InfoOnProduct'
+        409:
+          description: Ошибка обработки данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-codegen-request-body-name: body
+      
+  /POSTOrderResultAS:
+    post:
+      tags:
+      - Документы
+      summary: Отправка отметки об обработке документа в учетную систему
+      operationId: POSTOrderResultAS
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                GUIDentry:
+                  type: string
+                  description: Уникальный идентификатор записи изменений — поле GUID
+                    таблицы TableDocInfo метода POSTOrdersModifications
+                  format: uuid
+        required: false
+      responses:
+        200:
+          description: Успех
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        409:
+          description: Ошибка обработки данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-codegen-request-body-name: body
+      
+  /POSTConfirmStage:
+    post:
+      tags:
+      - Документы
+      summary: Отправка подтверждения этапа из учетной системы
+      operationId: POSTConfirmStage
+      requestBody:
+        content:
+          application/json:
+            schema:
+                type: object
+                properties:
+                  Invoice:
+                    type: object
+                    properties:
+                      TypeOperation:
+                        type: string
+                        description: |
+                          Тип операции:
+                            * IN – прием товаров
+                            * OUT – отгрузка товаров
+                            * MOVING – перемещение
+                            * PRODUCTION – комплектация (производство)
+                        enum:
+                        - IN
+                        - OUT
+                        - MOVING
+                        - PRODUCTION
+                      GUID:
+                        type: string
+                        description: Уникальный идентификатор документа
+                        format: uuid
+                      NumberDoc:
+                        maxLength: 20
+                        type: string
+                        description: номер документа учетной системы, который выводится
+                          на печатную форму документа
+                      StageConfirm:
+                        maxLength: 50
+                        type: string
+                        description: |
+                          Этап подтверждения. Например:
+                            * КонтрольЗавершение – для документов прихода
+                            * ОтгрузкаКонтроль – для документов отгрузки
+                        example: КонтрольЗавершение
+        required: false
+      responses:
+        200:
+          description: Успех
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        409:
+          description: Ошибка обработки данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-codegen-request-body-name: body
+      
+  /POSTRouteSheet:
+    post:
+      tags:
+      - Документы
+      summary: Отправка маршрутного листа в WMS
+      operationId: POSTRouteSheet
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                TypeOperation:
+                  type: string
+                  description: Тип операции — всегда передавать ROUTELIST
+                  enum:
+                  - ROUTELIST
+                WareHouseCode:
+                  maxLength: 9
+                  type: string
+                  description: Код склада WMS
+                RouteSheet:
+                  type: object
+                  properties:
+                    GUIDRouteSheet:
+                      type: string
+                      description: Уникальный идентификатор маршрутного листа
+                      format: uuid
+                    DateDoc:
+                      type: string
+                      description: Дата документа
+                      format: date-time
+                    Number:
+                      maxLength: 9
+                      type: string
+                      description: Номер документа маршрутного листа
+                    Coment:
+                      type: string
+                      description: Комментарий
+                    RouteGUID:
+                      type: string
+                      description: Уникальный идентификатор маршрута
+                      format: uuid
+                    RouteMethod:
+                      maxLength: 100
+                      type: string
+                      description: Название маршрута
+                    DMGUID:
+                      type: string
+                      description: Уникальный идентификатор способа доставки
+                      format: uuid
+                    DeliveryMethod:
+                      maxLength: 100
+                      type: string
+                      description: Название способа доставки
+                    VehicleGUID:
+                      type: string
+                      description: Уникальный идентификатор автомобиля
+                      format: uuid
+                    Vehicle:
+                      maxLength: 100
+                      type: string
+                      description: Название автомобиля
+                    VehicleNumber:
+                      type: string
+                      maxLength: 20
+                      description: Номер автомобиля
+                    DriverGUID:
+                      type: string
+                      description: Уникальный идентификатор водителя
+                      format: uuid
+                    Driver:
+                      maxLength: 150
+                      type: string
+                      description: Водитель
+                    DriverINN:
+                      maxLength: 50
+                      type: string
+                      description: ИНН водителя
+                    DriverLicenseNumber:
+                      maxLength: 50
+                      type: string
+                      description: Номер водительского удостоверения
+                    ForwarderGUID:
+                      type: string
+                      description: Уникальный идентификатор экспедитора
+                      format: uuid
+                    Forwarder:
+                      maxLength: 150
+                      type: string
+                      description: Экспедитор
+                    CarrierGUID:
+                      type: string
+                      description: Уникальный идентификатор перевозчика
+                      format: uuid
+                    Carrier:
+                      maxLength: 150
+                      type: string
+                      description: Перевозчик
+                    CellOut:
+                      maxLength: 50
+                      type: string
+                      description: Ворота отгрузки
+                    Barcode:
+                      maxLength: 128
+                      type: string
+                      description: Штрихкод документа
+                    DateOut:
+                      type: string
+                      description: Дата отгрузки плановая
+                      format: date-time
+                    GUIDOrganization:
+                      type: string
+                      description: Уникальный идентификатор организации
+                      format: uuid
+                    Organization:
+                      maxLength: 150
+                      type: string
+                      description: Название организации
+                    Priority:
+                      maximum: 99
+                      type: integer
+                      description: 'Приоритет документа: 0 — самый высокий, 99 — самый низкий'  
+                    TableOrder:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/OrderRow'
+                    CrossTransit:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/CrossTransitOrderRow'
+        required: false
+      responses:
+        200:
+          description: Успех
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Success'
+        409:
+          description: Ошибка обработки данных
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-codegen-request-body-name: body
+      
+  /POSTCrossTransit:
+    post:
+      tags:
+      - Кросс-транзит
+      summary: Отправка распоряжения кросс-транзит в WMS
+      operationId: POSTCrossTransit
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                WareHouseCode:
+                  maxLength: 9
+                  type: string
+                  description: Код склада WMS
+                CrossTransit:
+                  type: object
+                  properties:
+                    Comment:
+                      type: string
+                      description: Комментарий
+                    GUID:
+                      type: string
+                      format: uuid
+                      description: Уникальный идентификатор документа. Если обмен без использования GUID, тогда поле остается пустым, а поиск производится по NumberDoc
+                    DateDoc:
+                      type: string
+                      description: Дата документа учетной системы
+                      format: date-time
+                    NumberDoc:
+                      maxLength: 20
+                      type: string
+                      description: Номер документа учетной системы
+                    DeliveryOptions:
+                      type: object
+                      properties:
+                        DMGUID:
+                          type: string
+                          description: Уникальный идентификатор способа доставки
+                          format: uuid
+                        DeliveryMethod:
+                          maxLength: 100
+                          type: string
+                          description: Наименование способа доставки
+                        RouteGUID:
+                          type: string
+                          description: Уникальный идентификатор маршрута
+                          format: uuid
+                        RouteMethod:
+                          maxLength: 100
+                          type: string
+                          description: Наименование маршрута
+                    GUIDShipper:
+                      type: string
+                      description: Уникальный идентификатор контрагента отправителя
+                      format: uuid
+                    TableCargo:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          Cargo:
+                            $ref: '#/components/schemas/Cargo'
+                    Catalogs:
+                      type: object
+                      properties:
+                        Contractor:
+                          $ref: '#/components/schemas/Contractor'
+                        GroupsProducts:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/ProductGroup'
+                        ClassifierPackage:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/ClassifierPackage'
+                        Products:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/Product'
+                        Packing:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/Packing'
+                        BarcodeTable:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/Barcode'
+        required: false
+      responses:
+        200:
+          description: Успех
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Success'
+        409:
+          description: Ошибка обработки данных
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-codegen-request-body-name: body
+      
+  /POSTCrossTransitModifications:
+    post:
+      tags:
+      - Кросс-транзит
+      summary: Получение списка изменений по документам кросс-транзит
+      operationId: POSTCrossTransitModifications
+      responses:
+        200:
+          description: Успех
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  TableDocInfo:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/OrderModifications'
+        409:
+          description: Ошибка обработки данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                
+  /POSTInfoOnCrossTransit:
+    post:
+      tags:
+      - Кросс-транзит
+      summary: Получение информации по распоряжению кросс-транзит
+      operationId: POSTInfoOnCrossTransit
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                GUIDentry:
+                  type: string
+                  description: Уникальный идентификатор записи изменений
+                  format: uuid
+                GUIDorder:
+                  type: string
+                  description: Уникальный идентификатор документа
+                  format: uuid
+        required: false
+      responses:
+        200:
+          description: Успех
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  CrossTransit:
+                    type: object
+                    properties:
+                      Comment:
+                        type: string
+                        description: Комментарий
+                      GUID:
+                        type: string
+                        description: Уникальный идентификатор документа
+                        format: uuid
+                      DateDoc:
+                        type: string
+                        description: Дата документа
+                        format: date-time
+                      NumberDoc:
+                        maxLength: 20
+                        type: string
+                        description: Номер документа в учетной системе
+                      DeliveryOptions:
+                        type: object
+                        properties:
+                          DMGUID:
+                            type: string
+                            description: Уникальный идентификатор способа доставки
+                            format: uuid
+                          DeliveryMethod:
+                            maxLength: 100
+                            type: string
+                            description: Наименование способа доставки
+                          RouteGUID:
+                            type: string
+                            description: Уникальный идентификатор маршрута
+                            format: uuid
+                          RouteMethod:
+                            maxLength: 100
+                            type: string
+                            description: Наименование маршрута
+                      GUIDShipper:
+                        type: string
+                        description: Уникальный идентификатор контрагента-отправителя
+                        format: uuid
+                      NumberDocWMS:
+                        maxLength: 10
+                        type: string
+                        description: Номер документа в WMS
+                      Status:
+                        type: string
+                        description: Статус документа в WMS
+                      TableCargo:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            Cargo:
+                              $ref: '#/components/schemas/CargoCrossInfo'
+                      Catalogs:
+                        type: object
+                        properties:
+                          Contractor:
+                            $ref: '#/components/schemas/Contractor'
+                          GroupsProducts:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/ProductGroup'
+                          ClassifierPackage:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/ClassifierPackage'
+                          Products:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Product'
+                          Packing:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Packing'
+                          BarcodeTable:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Barcode'
+        409:
+          description: Ошибка обработки данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-codegen-request-body-name: body
+      
+  /POSTCrossTranzitResultAS:
+    post:
+      tags:
+      - Кросс-транзит
+      summary: Отправка отметки об обработке документа кросс-транзит в учетную систему
+      operationId: POSTCrossTranzitResultAS
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                GUIDentry:
+                  type: string
+                  description: Уникальный идентификатор записи изменений — поле GUID
+                    таблицы TableDocInfo метода POSTCrossTransitModifications
+                  format: uuid
+        required: false
+      responses:
+        200:
+          description: Успех
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        409:
+          description: Ошибка обработки данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-codegen-request-body-name: body
+      
+  /POSTGetResourseProductivity:
+    post:
+      tags:
+      - Ресурсы
+      summary: Отправка отправки информации по биллингу ресурсов в учетную систему
+      operationId: POSTGetResourseProductivity
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                WareHouseCode:
+                  maxLength: 9
+                  type: string
+                  description: Код склада WMS
+                DateFrom:
+                  type: string
+                  description: Начальная дата
+                  format: date-time
+                DateTo:
+                  type: string
+                  description: Конечная дата
+                  format: date-time
+                GoodsOperation:
+                  maxLength: 150
+                  type: string
+                  description: Операция над товаром
+                  example: ПриемКонтроль
+        required: false
+      responses:
+        200:
+          description: Успех
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ResourseProductivity'
+        409:
+          description: Ошибка обработки данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-codegen-request-body-name: body
+      
+  /POSTReclamation:
+    post:
+      tags:
+      - Рекламации
+      summary: Отправка рекламации в WMS
+      operationId: POSTReclamation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                TypeOperation:
+                  type: string
+                  description: Тип операции — всегда передавать RECLAMATION
+                  enum:
+                  - RECLAMATION
+                WareHouseCode:
+                  maxLength: 9
+                  type: string
+                  description: Код склада WMS
+                Reclamation:
+                  type: object
+                  properties:
+                    GUIDReclamation:
+                      type: string
+                      description: Уникальный идентификатор документа
+                      format: uuid
+                    Number:
+                      maxLength: 20
+                      type: string
+                      description: Номер документа в учетной системе
+                    DateDoc:
+                      type: string
+                      description: Дата документа
+                      format: date-time
+                    Comment:
+                      type: string
+                      description: Комментарий
+                    GUIDOrganization:
+                      type: string
+                      description: Уникальный идентификатор организации
+                      format: uuid
+                    Organization:
+                      maxLength: 150
+                      type: string
+                      description: Наименование организации
+                    Destination:
+                      maxLength: 150
+                      type: string
+                      description: Назначение
+                    GroupsProducts:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/ProductGroup'
+                    ClassifierPackage:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/ClassifierPackage'
+                    Products:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Product'
+                    Packing:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Packing'
+                    BarcodeTable:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Barcode'
+                    TableProduct:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/ReclamationProductRow'
+        required: false
+      responses:
+        200:
+          description: Успех
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Success'
+        409:
+          description: Ошибка обработки данных
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-codegen-request-body-name: body
+      
+  /POSTInfoOnReclamation:
+    post:
+      tags:
+      - Рекламации
+      summary: Получение информации по рекламации
+      operationId: POSTInfoOnReclamation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                GUIDentry:
+                  type: string
+                  description: Уникальный идентификатор записи изменений
+                  format: uuid
+                GUIDorder:
+                  type: string
+                  description: Уникальный идентификатор рекламации
+                  format: uuid
+        required: false
+      responses:
+        200:
+          description: Успех
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  TypeOperation:
+                    type: string
+                    description: Тип операции — всегда передавать RECLAMATION
+                    enum:
+                    - RECLAMATION
+                  Reclamation:
+                    type: object
+                    properties:
+                      GUIDReclamation:
+                        type: string
+                        description: Уникальный идентификатор рекламации
+                        format: uuid
+                      Number:
+                        maxLength: 20
+                        type: string
+                        description: Номер документа в учетной системе
+                      DateDoc:
+                        type: string
+                        description: Дата документа
+                        format: date-time
+                      Comment:
+                        type: string
+                        description: Комментарий
+                      GUIDOrganization:
+                        type: string
+                        description: Уникальный идентификатор организации
+                        format: uuid
+                      Organization:
+                        maxLength: 150
+                        type: string
+                        description: Наименование организации
+                      TableProduct:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ReclamationInfoProductRow'
+        409:
+          description: Ошибка обработки данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-codegen-request-body-name: body
+      
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+      
+  schemas:
+    Success:
+      type: object
+      properties:
+        Success:
+          type: boolean
+          description: Успешность обработки пакета
+          default: true
+        Code:
+          type: string
+          description: Код обработки запроса на стороне WMS
+          enum:
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+          - "5"
+          - "6"
+        Description:
+          type: string
+          description: Описание кода обработки
+          
+    Error:
+      type: object
+      properties:
+        Success:
+          type: boolean
+          description: Успешность обработки пакета
+          default: false
+        Code:
+          type: string
+          description: Код обработки запроса на стороне WMS
+          enum:
+          - "101"
+          - "102"
+          - "103"
+          - "104"
+          - "105"
+          - "106"
+          - "107"
+          - "108"
+        Description:
+          type: string
+          description: Описание кода обработки
+          
+    ProductGroup:
+      type: object
+      properties:
+        Description:
+          maxLength: 150
+          type: string
+          description: Наименование группы товара
+        GUID:
+          type: string
+          description: Уникальный идентификатор группы товара
+          format: uuid
+        CodeMS:
+          maxLength: 100
+          type: string
+          description: Идентификатор учетной системы
+        ParentGUID:
+          type: string
+          description: Уникальный идентификатор родителя группы товара
+          format: uuid
+      description: Группа товара
+      
+    ClassifierPackage:
+      type: object
+      properties:
+        GUIDClassifierPackage:
+          type: string
+          description: Уникальный идентификатор классификатора
+          format: uuid
+        CodeClassifierPackage:
+          maxLength: 3
+          type: string
+          description: Идентификатор учетной системы
+        Description:
+          maxLength: 25
+          type: string
+          description: Наименование классификатора
+        FullDescription:
+          maxLength: 100
+          type: string
+          description: Полное наименование классификатора
+      description: Классификатор единицы измерения
+      
+    Product:
+      type: object
+      properties:
+        GUIDProduct:
+          type: string
+          description: Уникальный идентификатор товара
+          format: uuid
+        CodeMS:
+          maxLength: 100
+          type: string
+          description: Идентификатор учетной системы
+        Description:
+          maxLength: 150
+          type: string
+          description: Наименование товара
+        FullDescription:
+          maxLength: 250
+          type: string
+          description: Полное наименование товара (если используется)
+        AdditionalDescription:
+          maxLength: 250
+          type: string
+          description: Дополнительное описание
+        ParentGUID:
+          type: string
+          description: Уникальный идентификатор группы товара
+          format: uuid
+        Article:
+          maxLength: 40
+          type: string
+          description: Артикул товара
+        GUIDPackaging:
+          type: string
+          description: Уникальный идентификатор единицы товара по умолчанию
+          format: uuid
+        Brand:
+          maxLength: 150
+          type: string
+          description: Бренд производителя товара
+        Kind:
+          maxLength: 20
+          type: string
+          description: Код категории ERP - используется для сопоставления категорий
+            ERP-WMS
+        Subkind:
+          maxLength: 20
+          type: string
+          description: Код подкатегории ERP - используется для сопоставления подкатегорий
+            ERP-WMS (код не должен пересекаться с кодами категории)
+        Type:
+          maxLength: 1
+          type: string
+          description: |
+            Тип товара:
+              * 1 – штучный
+              * 2 – весовой
+              * 3 – штучный средневесовой
+              * 4 – отрезной
+          enum:
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+        SeriesMode:
+          type: boolean
+          description: Признак ведения учета по сериям
+        ShelfLifeMode:
+          type: boolean
+          description: Признак ведения учета по срокам годности
+        SeriesNumberMode:
+          type: boolean
+          description: Признак ведения учета в разрезе серийных номеров
+        UniqueSNMode:
+          type: boolean
+          description: Признак ведения учета в разрезе уникальных серийных номеров
+        StoragePeriodInDays:
+          type: string
+          maxLength: 15
+          description: Срок хранения в днях
+        MinShipGUIDPackaging:
+          type: string
+          description: Уникальный идентификатор единицы измерения товара, который используется для минимальной единицы отгрузки
+          format: uuid
+        NoBarcode:
+          type: boolean
+          description: Отключает верификацию товара сканированием штрихкода на ТСД
+          default: false
+        QuantityOnPallet:
+          multipleOf: 0.001
+          type: number
+          description: Количество товара на паллете
+          format: float
+        IsSet:
+          type: boolean
+          description: Признак набора
+        ABCClassifier:
+          maxLength: 1
+          type: string
+          description: |
+            Класс оборачиваемости товара (ABC):
+              * A
+              * B
+              * C
+          enum:
+          - A
+          - B
+          - C
+        AllowableReceiptPercentageShelfLife:
+          multipleOf: 0.001
+          type: number
+          description: Допустимый процент остатка срока годности (для прихода)
+          format: float
+        SerialNumberType:
+          maxLength: 1
+          type: string
+          description: |
+            Тип серийного номера :
+              * U - уникальный (для новых марок)
+              * C - обычный (не используется)
+          enum:
+          - A
+          - B
+          - C
+        HasPhoto:
+          type: boolean
+          description: Признак наличия фото
+        PackingMaterial:
+          maxLength: 150
+          type: string
+          description: Материал упаковки
+        TemperatureModeFrom:
+          multipleOf: 0.1
+          type: number
+          description: Температурный режим (от)
+          format: float
+        TemperatureModeTo:
+          multipleOf: 0.1
+          type: number
+          description: Температурный режим (до)
+          format: float
+        BP001:
+          type: string
+          description: |
+            Значение дополнительного свойства партии. Ключом (тут: BP001) выступает идентификатор дополнительного свойства партии в учетной системе. Типы значений: строка, число, UUID, дата в формате ISO, булево. Может быть несколько.
+      description: Товар
+    
+    Packing:
+      type: object
+      properties:
+        GUIDPackaging:
+          type: string
+          description: Уникальный идентификатор единицы измерения
+          format: uuid
+        Description:
+          maxLength: 25
+          type: string
+          description: Наименование единицы измерения
+        GUIDProduct:
+          type: string
+          description: Уникальный идентификатор товара
+          format: uuid
+        GUIDClassifierPackage:
+          type: string
+          description: Уникальный идентификатор классификатора
+          format: uuid
+        Coef:
+          multipleOf: 0.001
+          type: number
+          description: Коэффициент единицы измерения относительно базовой единицы
+          format: float
+        Height:
+          multipleOf: 0.0001
+          type: number
+          description: Высота (метры)
+          format: float
+        Width:
+          multipleOf: 0.0001
+          type: number
+          description: Ширина (метры)
+          format: float
+        Depth:
+          multipleOf: 0.0001
+          type: number
+          description: Глубина (метры)
+          format: float
+        Weight:
+          multipleOf: 0.001
+          type: number
+          description: Вес (килограмм)
+          format: float
+        Capacity:
+          multipleOf: 1E-12
+          type: number
+          description: Объем (м³)
+          format: float
+        Basic:
+          type: boolean
+          description: Признак базовой единицы измерения
+        Deprecated:
+          type: boolean
+          description: Пометка удаления
+      description: Единица измерения
+    
+    Barcode:
+      type: object
+      properties:
+        Barcode:
+          maxLength: 50
+          type: string
+          description: Значение штрихкода
+        GUIDPackaging:
+          type: string
+          description: Уникальный идентификатор единицы измерения
+          format: uuid
+        GUIDProduct:
+          type: string
+          description: Уникальный идентификатор товара
+          format: uuid
+        BarcodeType:
+          maxLength: 2
+          type: string
+          description: |
+            Тип штрихкода. Применяется для вариантов разбора:
+              * B0 – основной – сравнение производится по точному совпадению
+              * B1 – часть серийного номера с начала строки – для определения товара из серийного номера
+          enum:
+          - B0
+          - B1
+      description: Штрихкод товара
+    
+    WeightItemCode:
+      type: object
+      properties:
+        WeightItemCode:
+          maxLength: 10
+          type: string
+          description: Значение кода весового товара
+        GUIDProduct:
+          type: string
+          description: Уникальный идентификатор товара
+          format: uuid
+      description: Код весового товара
+    
+    ProductRow:
+      type: object
+      properties:
+        GUIDProduct:
+          type: string
+          description: Уникальный идентификатор товара
+          format: uuid
+        GUIDPackaging:
+          type: string
+          description: Уникальный идентификатор единицы измерения
+          format: uuid
+        Qty:
+          multipleOf: 0.001
+          type: number
+          description: Количество товара
+          format: float
+        Series:
+          maxLength: 150
+          type: string
+          description: Серия товара, если у товара есть признак SeriesMode
+        ShelfLife:
+          type: string
+          description: Срок годности товара, если у товара есть признак ShelfLifeMode
+          format: date-time
+        Quality:
+          maxLength: 100
+          type: string
+          description: Качество
+        DateOfManufacture:
+          type: string
+          description: Дата производства
+          format: date-time
+        BP001:
+          type: string
+          description: |
+            Значение дополнительного свойства партии. Ключом (тут: BP001) выступает идентификатор дополнительного свойства партии в учетной системе. Типы значений: строка, число, UUID, дата в формате ISO, булево. Может быть несколько.
+      description: Информация о товаре
+       
+    ProductProductionRow:
+      type: object
+      properties:
+        GUIDProduct:
+          type: string
+          description: Уникальный идентификатор товара
+          format: uuid
+        Series:
+          maxLength: 150
+          type: string
+          description: Серия товара, если у товара есть признак SeriesMode
+        ShelfLife:
+          type: string
+          description: Срок годности товара, если у товара есть признак ShelfLifeMode
+          format: date-time
+        Qty:
+          multipleOf: 0.001
+          type: number
+          description: Количество товара
+          format: float
+        Quality:
+          maxLength: 100
+          type: string
+          description: Качество
+        DateOfManufacture:
+          type: string
+          description: Дата производства
+          format: date-time
+      description: Информация о товаре
+      
+    ProductOrderRow:
+      allOf:
+        - $ref: '#/components/schemas/ProductRow'
+        - type: object
+          properties:
+            CrossDockQty:
+              type: number
+              format: float
+              multipleOf: 0.001
+              description: Количество товара для потребностей классического кросс-дока - процесс приёмки и отгрузки товаров и грузов через склад напрямую, без размещения в зоне долговременного хранения
+            ProcessType:
+              type: string
+              maxLength: 50
+              description: "Вид процесса обработки строки. Если нужно обработать товар по методам кросс-докинга, PBL, фасовка. Для каждого метода создается своя строка в табличной части TableProduct с нужным количеством. Передаваемые значения: <пустое> – строка будет обработана по методу по умолчанию, CROSSDOCK – по методу кросс дока, PBL – метод  pick-by-line (при таком методе для строки не должно заполняться поле CrossDockQty, и должны быть записи в TablePBL). Также в это поле при необходимости можно передавать произвольное названия процесса обработки для последующего использования в настройках."
+            Price:
+              type: number
+              format: float
+              multipleOf: 0.01
+              description: Цена за единицу товара
+            TableComment:
+              type: string
+              maxLength: 250
+              description: Комментарий к строке таблицы
+            TableProcessingComment:
+              type: string
+              maxLength: 250
+              description: Комментарий к строке таблицы
+            GUIDContainer:
+              type: string
+              format: uuid
+              description: Уникальный идентификатор контейнера   
+            Container:
+              type: string
+              maxLength: 50
+              description: Комментарий к строке таблицы
+
+    ProductOrderInfoRow:
+      allOf:
+        - $ref: '#/components/schemas/ProductRow'
+        - type: object
+          properties:
+            QtyOriginalUnit:
+              type: number
+              format: float
+              multipleOf: 0.001
+              description: Количество товара к отгрузке в исходных единицах измерения (указанных при загрузке заказа из учетной системы)
+            OriginalQty:
+              type: number
+              format: float
+              multipleOf: 0.001
+              description: Количество товара исходное
+            GUIDDocumentCS:
+              type: string
+              format: uuid
+              description: Исходный документ распределения в учетной системе
+            Price:
+              type: number
+              format: float
+              multipleOf: 0.01
+              description: Цена за единицу товара
+            GUIDPackingList:
+              type: string
+              description: Уникальный идентификатор упаковки
+              format: uuid
+            ProcessType:
+              type: string
+              maxLength: 50
+              description: Способ обработки строки
+            GUIDPackaging:
+              type: string
+              format: uuid
+              description: Уникальный идентификатор единицы измерения
+            PackingMaterial:
+              maxLength: 150
+              type: string
+              description: Материал упаковки
+            TemperatureModeFrom:
+              multipleOf: 0.1
+              type: number
+              description: Температурный режим (от)
+              format: float
+            TemperatureModeTo:
+              multipleOf: 0.1
+              type: number
+              description: Температурный режим (до)
+              format: float
+            TablePBL:
+              type: array
+              items:
+                $ref: '#/components/schemas/PBLRow'
+      
+    ProductInvInfoRow:
+      type: object
+      properties:
+        GUIDProduct:
+          type: string
+          description: Уникальный идентификатор товара
+          format: uuid
+        Series:
+          maxLength: 150
+          type: string
+          description: Серия товара, если у товара есть признак SeriesMode
+        ShelfLife:
+          type: string
+          description: Срок годности товара, если у товара есть признак ShelfLifeMode
+          format: date-time
+        Quality:
+          maxLength: 100
+          type: string
+          description: Качество
+        DateOfManufacture:
+          type: string
+          description: Дата производства
+          format: date-time
+        Qty:
+          type: number
+          format: float
+          multipleOf: 0.001
+          description: Остаток товара на начало инвентаризации
+        QtyDif:
+          type: number
+          format: float
+          multipleOf: 0.001
+          description: Количество изменения остатка, отрицательное количество – списание, положительное – оприходование
+        QtyFin:
+          type: number
+          format: float
+          multipleOf: 0.001
+          description: Остаток товара на конец инвентаризации
+        QtyCounted:
+          type: number
+          multipleOf: 0.001
+          format: float
+          description: Посчитаное количество во время инвентаризации
+        MSWarehouseCode:
+          type: string
+          maxLength: 36
+          description: Код склада учетной системы
+        GUIDPackingList:
+          type: string
+          description: Уникальный идентификатор упаковки
+          format: uuid
+        BP001:
+          type: string
+          description: |
+            Значение дополнительного свойства партии. Ключом (тут: BP001) выступает идентификатор дополнительного свойства партии в учетной системе. Типы значений: строка, число, UUID, дата в формате ISO, булево. Может быть несколько.
+    
+    ProductRowSimple:
+      type: object
+      properties:
+        GUIDProduct:
+          type: string
+          description: Уникальный идентификатор товара
+          format: uuid
+        Qty:
+          multipleOf: 0.001
+          type: number
+          description: Количество товара
+          format: float
+      description: Информация о товаре в заказе
+     
+    ProductCargoRow:
+      type: object
+      properties:
+        GUIDProduct:
+          type: string
+          description: Уникальный идентификатор товара
+          format: uuid
+        Qty:
+          multipleOf: 0.001
+          type: number
+          description: Количество товара
+          format: float
+        Series:
+          maxLength: 150
+          type: string
+          description: Серия товара, если у товара есть признак SeriesMode
+        ShelfLife:
+          type: string
+          description: Срок годности товара, если у товара есть признак ShelfLifeMode
+          format: date-time
+        Weight:
+          type: number
+          format: float
+          multipleOf: 0.001
+          description: Вес (кг)
+        Capacity:
+          type: number
+          format: float
+          multipleOf: 0.000000000001
+          description: Объем (м³)
+        TableSN:
+          type: array
+          items:
+            $ref: '#/components/schemas/SNBase'
+      description: Информация о товаре
+         
+    ProductCargoRouteSheetRow:
+      type: object
+      properties:
+        GUIDProduct:
+          type: string
+          description: Уникальный идентификатор товара
+          format: uuid
+        GUIDOrder:
+          type: string
+          description: Уникальный идентификатор документа отгрузки
+          format: uuid
+        Container:
+          maxLength: 25
+          type: string
+          description: Наименование контейнера
+        Qty:
+          multipleOf: 0.001
+          type: number
+          description: Количество товара
+          format: float
+        Series:
+          maxLength: 150
+          type: string
+          description: Серия товара, если у товара есть признак SeriesMode
+        ShelfLife:
+          type: string
+          description: Срок годности товара, если у товара есть признак ShelfLifeMode
+          format: date-time
+        Weight:
+          type: number
+          format: float
+          multipleOf: 0.001
+          description: Вес (кг)
+        Capacity:
+          type: number
+          format: float
+          multipleOf: 0.000000000001
+          description: Объем (м³)
+        TableSN:
+          type: array
+          items:
+            $ref: '#/components/schemas/SNBase'
+        TablePBL:
+          type: array
+          items:
+            type: object
+            properties:
+              GUIDDocumentCS:
+                type: string
+                format: uuid
+                description: Исходный документ распределения в учетной системе
+      description: Информация о товаре
+      
+    ProductPSInfoRow:
+      allOf:
+        - $ref: '#/components/schemas/ProductRowSimple'
+        - type: object
+          properties:
+            CodeMS:
+              maxLength: 100
+              type: string
+              description: Идентификатор учетной системы
+            Series:
+              maxLength: 150
+              type: string
+              description: Серия товара, если у товара есть признак SeriesMode
+            ShelfLife:
+              type: string
+              description: Срок годности товара, если у товара есть признак ShelfLifeMode
+              format: date-time
+            Quality:
+              maxLength: 100
+              type: string
+              description: Качество
+            DateOfManufacture:
+              type: string
+              description: Дата производства
+              format: date-time
+       
+    PBLRow:
+      type: object
+      properties:
+        GUIDProduct:
+          type: string
+          description: Уникальный идентификатор товара
+          format: uuid
+        GUIDContractor:
+          type: string
+          description: Уникальный идентификатор контрагента
+          format: uuid
+        NameContractor:
+          maxLength: 150
+          type: string
+          description: Наименование контрагента
+        Qty:
+          multipleOf: 0.001
+          type: number
+          description: Количество товара
+          format: float
+        GUIDDocumentCS:
+          type: string
+          description: Уникальный идентификатор документа, на основани которого делался
+            заказ поставщику
+          format: uuid
+      description: Информация о распределении товара по контрагентам при использовании
+        кросс-транзита
+    
+    TareRow:
+      type: object
+      properties:
+        GUIDTare:
+          type: string
+          description: Уникальный идентификатор тары
+          format: uuid
+        NameTare:
+          maxLength: 150
+          type: string
+          description: Наименование тары
+        Returnable:
+          type: boolean
+          description: Отметка, что тара возвратная
+        QtyTare:
+          multipleOf: 0.001
+          type: number
+          description: Количество тары
+          format: float
+      description: Информация о распределении товара по контрагентам при использовании
+        кросс-транзита
+        
+    TareRowBase:
+      type: object
+      properties:
+        GUIDTare:
+          type: string
+          description: Уникальный идентификатор тары
+          format: uuid
+        NameTare:
+          maxLength: 150
+          type: string
+          description: Наименование тары
+        Qty:
+          multipleOf: 0.001
+          type: number
+          description: Количество
+          format: float
+    
+    ProductRemnantsRow:
+      type: object
+      properties:
+        GUIDProduct:
+          type: string
+          description: Уникальный идентификатор товара
+          format: uuid
+        CodeMS:
+          maxLength: 100
+          type: string
+          description: Идентификатор товара в учетной системе
+        GUIDPackaging:
+          type: string
+          description: Уникальный идентификатор единицы измерения
+          format: uuid
+        Qty:
+          multipleOf: 0.001
+          type: number
+          description: Количество товара
+          format: float
+        Series:
+          maxLength: 150
+          type: string
+          description: Серия товара, если у товара есть признак SeriesMode
+        ShelfLife:
+          type: string
+          description: Срок годности товара, если у товара есть признак ShelfLifeMode
+          format: date-time
+        Quality:
+          maxLength: 100
+          type: string
+          description: Качество
+        DateOfManufacture:
+          type: string
+          description: Дата производства
+          format: date-time
+      description: Информация об остатках товара
+    
+    SNBase:
+      type: object
+      properties:
+        SerialNumber:
+          maxLength: 150
+          type: string
+          description: Серийный номер (уникальный номер)
+        Qty:
+          type: number
+          format: float
+          multipleOf: 0.001
+          description: Количество товара
+      description: Cерийный номер товара, если у товара есть признак SeriesNumberMode
+        
+    SN:
+      type: object
+      properties:
+        GUIDProduct:
+          type: string
+          description: Уникальный идентификатор товара
+          format: uuid
+        GUIDSeries:
+          type: string
+          description: Идентификатор серии (справка Б)
+          format: uuid
+        SerialNumber:
+          maxLength: 150
+          type: string
+          description: Серийный номер (уникальный номер)
+        SerialNumberPack:
+          maxLength: 150
+          type: string
+          description: Серийный номер упаковки
+        Qty:
+          type: number
+          format: float
+          multipleOf: 0.001
+          description: Количество товара
+      description: Cерийный номер товара, если у товара есть признак SeriesNumberMode
+
+    SerialNumberRange:
+      type: object
+      properties:
+        FromNumberSeries:
+          type: string
+          maxLength: 15
+          description: Начало диапазона
+        ToNumberSeries:
+          type: string
+          maxLength: 15
+          description: Конец диапазона
+        AditionalCode:
+          type: string
+          maxLength: 10
+          description: Дополнительный код
+      description: Диапазон серийных номеров с типом "диапазон"
+
+    SNOrder:
+      allOf:
+        - $ref: '#/components/schemas/SN'
+        - type: object
+          properties:
+            Series:
+              type: string
+              maxLength: 150
+              description: Строчный идентификатор серии номенклатуры
+            Type:
+              type: string
+              maxLength: 1
+              description: |
+                Тип серийного номера:
+                * U — уникальный (для новых марок)
+                * C — обычный (не используется)
+                * R — диапазон (для старых марок)
+                * P — упаковка, для серийных номеров с описанной вложенностью
+              enum:
+                - U
+                - C
+                - R
+                - P
+            AditionalCode:
+              type: string
+              maxLength: 150
+              description: Дополнительный идентификатор СН
+            SerialNumberRange:
+              type: array
+              items:
+                $ref: '#/components/schemas/SerialNumberRange'
+    
+    OrderModifications:
+      type: object
+      properties:
+        GUID:
+          type: string
+          description: Уникальный идентификатор записи изменений
+          format: uuid
+        GUIDDoc:
+          type: string
+          description: Уникальный идентификатор документа
+          format: uuid
+        StageDoc:
+          maxLength: 150
+          type: string
+          description: Этап документа, на котором зарегистрированы изменения
+          enum:
+          - Прием контроль
+          - ОтгрузкаОтбор
+        StartStage:
+          type: boolean
+          description: Признак стартового этапа
+        DateStartWorkStage:
+              type: string
+              description: Дата начала сбора документа(фактически когда была отобрана первая строка документа)
+              format: date-time   
+        TypeOperation:
+          type: string
+          description: |
+            Тип операции:
+            * IN – прием товаров
+            * OUT – отгрузка товаров
+            * MOVINGWMS – пермещение сделаный в WMS
+            * INVENTORY – инвентаризация
+            * ROUTELIST – маршрутный лист
+            * PROBLEMSITUATION – проблемная ситуация
+            * NOMENCLATURE – товар
+            * CROSSTRANSIT – кросс-транзит
+            * PRODUCTION – комплектация
+            * RECLAMATION – рекламация
+          enum:
+          - IN
+          - OUT
+          - MOVINGWMS
+          - INVENTORY
+          - ROUTELIST
+          - PROBLEMSITUATION
+          - NOMENCLATURE
+          - CROSSTRANSIT
+          - PRODUCTION
+          - RECLAMATION
+        NameDoc:
+          type: string
+          description: Название документа для документов прихода, расхода как передавалось из учетной системы
+        GUIDOrganization:
+          type: string
+          description: Уникальный идентификатор организации
+          format: uuid
+        Organization:
+          type: string
+          description: Наименование организации
+          maxLength: 150          
+    
+    AddressContractor:
+      type: object
+      properties:
+        Country:
+          maxLength: 100
+          type: string
+          description: Страна
+        Region:
+          maxLength: 100
+          type: string
+          description: Область
+        Area:
+          maxLength: 100
+          type: string
+          description: Район
+        City:
+          maxLength: 100
+          type: string
+          description: Город
+        ExtraStreet:
+          maxLength: 100
+          type: string
+          description: Дополнительная улица
+        Street:
+          maxLength: 100
+          type: string
+          description: Улица
+        House:
+          maxLength: 100
+          type: string
+          description: Дом
+        Housing:
+          maxLength: 100
+          type: string
+          description: Корпус
+        Apartment:
+          maxLength: 100
+          type: string
+          description: Квартира
+        Index:
+          maxLength: 100
+          type: string
+          description: Индекс
+        Representation:
+          maxLength: 100
+          type: string
+          description: Представление адреса
+        Telephone:
+          maxLength: 100
+          type: string
+          description: Телефон
+      description: Адрес контрагента
+    
+    Contractor:
+      type: object
+      properties:
+        GUIDContractor:
+          type: string
+          description: Уникальный идентификатор контрагента
+          format: uuid
+        NameContractor:
+          maxLength: 150
+          type: string
+          description: Наименование контрагента
+        EDRPOU:
+          maxLength: 12
+          type: string
+          description: Код по ЕДРПОУ
+        AddressContractor:
+          $ref: '#/components/schemas/AddressContractor'
+      description: Контрагент
+    
+    Remain:
+      type: object
+      properties:
+        Cell:
+          maxLength: 50
+          type: string
+          description: Название ячейки
+        GUIDProduct:
+          type: string
+          description: Уникальный идентификатор товара
+          format: uuid
+        Description:
+          maxLength: 150
+          type: string
+          description: Наименование товара
+        CodeMS:
+          maxLength: 50
+          type: string
+          description: Код учетной системы
+        Series:
+          maxLength: 150
+          type: string
+          description: Серия товара
+        ShelfLife:
+          type: string
+          description: Срок годности товара
+          format: date-time
+        Quality:
+          maxLength: 100
+          type: string
+          description: Качество
+        Qty:
+          multipleOf: 0.001
+          type: number
+          description: Количество
+          format: float
+        MSWarehouseCode:
+          maxLength: 36
+          type: string
+          description: Идентификатор склада учетной системы
+        MSWarehouse:
+          maxLength: 150
+          type: string
+          description: Наименование склада учетной системы
+        GUIDPackingList:
+          type: string
+          description: Уникальный идентификатор упаковки
+          format: uuid
+        BP001:
+          type: string
+          description: |
+            Значение дополнительного свойства партии.
+              Ключом (тут: BP001) выступает идентификатор дополнительного свойства партии в учетной системе.
+              Типы значений: строка, число, UUID, дата в формате ISO, булево.
+              Может быть несколько.
+      description: Остатки товара
+    
+    ProductSet:
+      type: object
+      properties:
+        SetGUID:
+          type: string
+          description: Уникальный идентификатор варианта комплектации
+          format: uuid
+        SetDescription:
+          maxLength: 150
+          type: string
+          description: Наименование варианта комплектации
+        GoodsGUID:
+          type: string
+          description: Уникальный идентификатор товара, к которому привязан вариант
+            комплектации
+          format: uuid
+        MainProductGUID:
+          type: string
+          description: Уникальный идентификатор основного товара комплекта (из таблицы
+            TableComponents — GoodsGUID)
+          format: uuid
+        SetQty:
+          multipleOf: 0.001
+          type: number
+          description: Выходное количество комплекта
+          format: float
+        TableComponents:
+          type: array
+          items:
+            $ref: '#/components/schemas/SetComponent'
+      description: Информация о варианте комплектации товара
+
+    Prices:
+      type: object
+      properties:
+        GUIDProduct:
+          type: string
+          description: Уникальный идентификатор варианта комплектации
+          format: uuid
+        Price:
+          multipleOf: 0.01
+          type: number
+          description: Цена
+          format: float
+      description: Информация о ценах товара
+
+    SetComponent:
+      type: object
+      properties:
+        GoodsGUID:
+          type: string
+          description: Уникальный идентификатор товара
+          format: uuid
+        GoodsDescription:
+          maxLength: 150
+          type: string
+          description: Наименование товара
+        GUIDPackaging:
+          type: string
+          description: Уникальный идентификатор единицы измерения
+          format: uuid
+        Qty:
+          multipleOf: 0.001
+          type: number
+          description: Количество
+          format: float
+      description: Комплектующее комплекта
+    
+    OrderRow:
+      type: object
+      properties:
+        GUIDOrder:
+          type: string
+          description: Уникальный идентификатор документа отгрузки
+          format: uuid
+        ShipmentPriority:
+          type: integer
+          description: Приоритет погрузки
+      description: Информация о заказе в маршрутном листе
+    
+    CrossTransitOrderRow:
+      type: object
+      properties:
+        GUIDDoc:
+          type: string
+          description: Уникальный идентификатор документа отгрузки
+          format: uuid
+        NumberDoc:
+          type: integer
+          description: Номер документа
+        GUIDContractor:
+          type: string
+          description: Уникальный идентификатор контрагента-получателя
+          format: uuid
+      description: Информация о заказе кросс-транзит в маршрутном листе
+    
+    Cargo:
+      type: object
+      properties:
+        CargoNumber:
+          maxLength: 10
+          type: string
+          description: Номер грузоместа
+        CargoBarCode:
+          maxLength: 20
+          type: string
+          description: Штрихкод грузоместа
+        OrderNumber:
+          maxLength: 20
+          type: string
+          description: Номер заказа
+        Capacity:
+          multipleOf: 1E-12
+          type: number
+          description: Объем (м³)
+          format: float
+        Weight:
+          multipleOf: 0.001
+          type: number
+          description: Вес (кг)
+          format: float
+        GUIDContractor:
+          type: string
+          description: Уникальный идентификатор контрагента-получателя
+          format: uuid
+        TableProduct:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductRowSimple'
+      description: Информация о грузоместе
+    
+    CargoInfo:
+      type: object
+      properties:
+        CargoNumberWMS:
+          maxLength: 10
+          type: string
+          description: Номер документа в WMS
+        CargoNumber:
+          type: integer
+          description: Номер грузоместа
+        CargoPortion:
+          type: integer
+          description: Номер порции грузоместа
+        CargoBarCode:
+          maxLength: 20
+          type: string
+          description: Штрихкод грузоместа
+        CargoBoxQty:
+          type: integer
+          description: Количество коробов грузоместа
+        CargoWeight:
+          multipleOf: 0.001
+          type: number
+          format: float
+          description: Вес грузоместа
+        CargoCapacity:
+          multipleOf: 0.000000001
+          type: number
+          format: float
+          description: Объем грузоместа
+        TableProduct:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductCargoRow'
+      description: Информация о грузоместе
+    
+    CargoCrossInfo:
+      type: object
+      properties:
+        GUIDCargo:
+          type: string
+          description: Уникальный идентификатор грузоместа
+          format: uuid
+        CargoNumber:
+          maxLength: 10
+          type: string
+          description: Номер грузоместа
+        CargoBarCode:
+          maxLength: 20
+          type: string
+          description: Штрихкод грузоместа
+        OrderNumber:
+          maxLength: 20
+          type: string
+          description: Номер заказа
+        Capacity:
+          multipleOf: 1E-12
+          type: number
+          description: Объем (м³)
+          format: float
+        Weight:
+          multipleOf: 0.001
+          type: number
+          description: Вес (кг)
+          format: float
+        GUIDContractor:
+          type: string
+          description: Уникальный идентификатор контрагента-получателя
+          format: uuid
+        CargoNumberWMS:
+          maxLength: 10
+          type: string
+          description: Номер документа в WMS
+        Status:
+          type: string
+          description: Статус документа в WMS
+        TableProduct:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductRowSimple'
+      description: Информация о грузоместе
+    
+    CargoRouteSheetInfo:
+      type: object
+      properties:
+        CargoNumberWMS:
+          maxLength: 10
+          type: string
+          description: Номер документа в WMS
+        CargoNumber:
+          type: integer
+          description: Номер грузоместа
+        CargoPortion:
+          type: integer
+          description: Номер порции грузоместа
+        CargoBarCode:
+          maxLength: 20
+          type: string
+          description: Штрихкод грузоместа
+        CargoBoxQty:
+          type: integer
+          description: Количество коробов грузоместа
+        CargoWeight:
+          multipleOf: 0.001
+          type: number
+          format: float
+          description: Вес грузоместа
+        CargoCapacity:
+          multipleOf: 0.000000001
+          type: number
+          format: float
+          description: Объем грузоместа
+        TableTare:
+          type: array
+          items:
+            $ref: '#/components/schemas/TareRowBase'
+        TableProduct:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductCargoRouteSheetRow'
+      description: Информация о грузоместе
+    
+    ResourseProductivity:
+      type: object
+      properties:
+        Resourse:
+          maxLength: 150
+          type: string
+          description: Ресурс операции
+        PersonnelNumber:
+          maxLength: 10
+          type: string
+          description: Табельный номер ресурса
+        PositionCnt:
+          type: integer
+          description: Количество строк в разрезе ресурса и табельного номера
+        Weight:
+          type: integer
+          description: Суммарный вес товара в разрезе ресурса и табельного номера
+        Volume:
+          type: integer
+          description: Суммарный объем товара в разрезе ресурса и табельного номера
+      description: Информация по биллингу ресурса
+    
+    ReclamationProductRow:
+      type: object
+      properties:
+        GUIDProduct:
+          type: string
+          description: Уникальный идентификатор товара
+          format: uuid
+        QtyDeclared:
+          multipleOf: 0.001
+          type: number
+          description: Количество товара, которое должно было быть
+          format: float
+        QtyFact:
+          multipleOf: 0.001
+          type: number
+          description: Фактическое количество товара
+          format: float
+        Comment:
+          maxLength: 250
+          type: string
+          description: Комментарий к товару
+        GUIDOrder:
+          type: string
+          description: Уникальный идентификатор документа распоряжения, относительно
+            которого составлена рекламация
+          format: uuid
+      description: Информация о товаре в рекламации
+    
+    ReclamationInfoProductRow:
+      type: object
+      properties:
+        GUIDProduct:
+          type: string
+          description: Уникальный идентификатор товара
+          format: uuid
+        QtyDeclared:
+          multipleOf: 0.001
+          type: number
+          description: Количество товара, которое должно было быть
+          format: float
+        QtyFact:
+          multipleOf: 0.001
+          type: number
+          description: Фактическое количество товара
+          format: float
+        QtyAccepted:
+          multipleOf: 0.001
+          type: number
+          description: Подтвержденное количество товара
+          format: float
+        Comment:
+          maxLength: 250
+          type: string
+          description: Комментарий к товару
+        GUIDOrder:
+          type: string
+          description: Уникальный идентификатор документа распоряжения, относительно
+            которого составлена рекламация
+          format: uuid
+        CodeMS:
+          maxLength: 100
+          type: string
+          description: Идентификатор учетной системы
+      description: Информация о товаре в рекламации
+
+    PackingListRow:
+      type: object
+      properties:
+        GUID:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор упаковки
+        GUIDProduct:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор товара, к которому относится упаковка
+        GUIDPalletPacking:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор единицы измерения паллеты
+        GUIDLayerPacking:
+          type: integer
+          description: Количество слоев на паллете
+        GUIDBoxPacking:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор единицы измерения ящика
+        GUIDGroupPacking:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор единицы измерения внутреннего вложения
+        GUIDBasicPacking:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор единицы измерения базовой упаковки
+      description: Упаковка
+
+    PickersRow:
+      type: object
+      properties:
+        Operation:
+          type: string        
+          description: Нименование выполняемой операции (Отгрузка отбор, Замена товара)
+        OperationIndex:
+          type: number
+          format: integer
+          description: порядковый номер операции, числовое значение
+        ResourceID:
+          type: number
+          format: integer
+          description: код ресурса (пользователя ТСД), выполняющего операцию
+        Resource:
+          type: string
+          description: ФИО ресурса, выполняющего операцию
+      description: Информация о ресурсе выполняющего операции Отгрузка отбор и Замена товара
+    Replacements:
+      type: object
+      properties:
+        Date:
+          type: string
+          description: дата и время выполнения замены (поле Дата выполнения);
+          format: date-time
+        OldProductGUID :
+          type: string
+          format: uuid
+          description: Уникальный идентификатор товара которий заменили
+        OldQty:
+          multipleOf: 0.001
+          type: number
+          format: float
+          description: количество товара, на который требуется замена (поле кол-во плана);
+        OldPrice :
+          multipleOf: 0.01
+          type: number
+          format: float
+          description: цена заказанного товара;
+        NewProductGUID  :
+          type: string
+          format: uuid
+          description: Уникальный идентификатор нового товара 
+        NewQty:
+          multipleOf: 0.001
+          type: number
+          format: float
+          description: количество нового товара
+        NewPrice :
+          multipleOf: 0.01
+          type: number
+          format: float
+          description: цена нового товара;
+        ReplacementStatus:
+          type: string
+          description: |
+                    результат согласования замены с клиентом:
+                       * Approved - Утверждено
+                       * Rejected - Отклонено.
+          enum:
+            - Approved
+            - Rejected
+        NoChange :
+          type: boolean
+          description: признак того, что товар для замены не найден 
+        ReplacementUser:
+          type: string
+          description: ФИО ресурса, выполняющего операцию
+        ProcessingComment:
+          type: string
+          description: комментарий, указанный ресурсом на ТСД при выполнении замены
+      description: Информация о Заменах товара
+    ShoppingRoomProductRow:
+      type: object
+      properties:
+        GUIDProduct:
+          type: string
+          format: uuid
+          description: идентификатор товара
+        Qty:
+          multipleOf: 0.001
+          type: number
+          description: количество товара
+          format: float  
+      description: Информацию о количестве товара, обработанного в торговом зале
+
+
+    AdditionalCargo:
+      type: object
+      properties:
+        CargoNumberWMSAdd:
+          maxLength: 10
+          type: string
+          description: Номер документа в WMS
+        CargoNumberAdd:
+          maxLength: 10
+          type: string
+          description: Номер грузоместа
+        CargoBarCodeAdd:
+          maxLength: 20
+          type: string
+          description: Штрихкод грузоместа
+      description: Дополнительное грузоместо
+    
+    InfoOnOrder:
+      type: object
+      properties:
+        Invoice:
+          type: object
+          properties:
+            TypeOperation:
+              type: string
+              description: |
+                Тип операции:
+                  * IN – прием товаров
+                  * OUT – отгрузка товаров
+                  * MOVING – перемещение
+                  * PRODUCTION – комплектация (производство)
+              enum:
+              - IN
+              - OUT
+              - MOVING
+              - PRODUCTION
+            GUID:
+              type: string
+              description: Уникальный идентификатор документа
+              format: uuid
+            NumberDoc:
+              maxLength: 20
+              type: string
+              description: Номер документа в учетной системе, который выводится
+                на печатную форму документа
+            NumberDocWMS:
+              maxLength: 10
+              type: string
+              description: Номер документа в WMS
+            DateDoc:
+              type: string
+              description: Дата документа
+              format: date-time
+            NameDoc:
+              maxLength: 150
+              type: string
+              description: Названия документа распоряжения, как он обозначается
+                (называется) в учетной системе
+            DocBarCode:
+              maxLength: 20
+              type: string
+              description: Штрихкод документа в учетной системе, если используется
+            Status:
+              type: string
+              description: Текущий этап документа
+            StatusIndex:
+              type: integer
+              minimum: 0
+              maximum: 31
+              description: |
+                Индекс текущего этапа документа:
+                  * 0 - Прием контроль
+                  * 1 - Прием паллетирование
+                  * 2 - Прием согласование
+                  * 3 - Прием размещение
+                  * 4 - Отгрузка отбор
+                  * 5 - Отгрузка перемещение
+                  * 6 - Отгрузка контроль
+                  * 7 - Отгрузка упаковка
+                  * 8 - Контроль/упаковка
+                  * 9 - Отгрузка отправка
+                  * 10 - Отгрузка завершение
+                  * 11 - Перемещение
+                  * 12 - Инвентаризация приход
+                  * 13 - Инвентаризация списание
+                  * 14 - Списание товара
+                  * 15 - Паллета формирование
+                  * 16 - Паллета размещение
+                  * 17 - Паллета выемка товара
+                  * 18 - Контейнер
+                  * 19 - Прием кросс транзит
+                  * 20 - Отгрузка кросс транзит
+                  * 21 - Перемещение кросс транзит
+                  * 22 - Паллетирование PBL
+                  * 23 - Весовой контроль
+                  * 24 - Визуальный контроль
+                  * 25 - Контроль завершение
+                  * 26 - Объединение контейнера
+                  * 27 - Уплотнение
+                  * 28 - Обработка проблемных ситуаций
+                  * 29 - Изменение статуса номенклатуры
+                  * 30 - Отгрузка отбор без сканирования
+                  * 31 - Замена товара
+            State:
+              type: string
+              description: Текущее состояние документа
+              enum:
+              - Активен
+              - Завершен
+              - Отменен
+              - К запуску
+              - Вожидании
+            StateIndex:
+              type: integer
+              enum:
+              - 0
+              - 1
+              - 2
+              - 3
+              description: |
+                Индекс текущего состояния документа
+                * 0 — Активен
+                * 1 — Завершен
+                * 2 — Отменен
+                * 3 — К запуску
+            DateStartWorkStage:
+              type: string
+              description: Дата начала сбора документа(фактически когда была отобрана первая строка документа)
+              format: date-time    
+            WareHouseCode:
+              type: string
+              maxLength: 9
+              description: Код склада
+            DateCompletionDoc:
+              type: string
+              format: date-time
+              description: Дата завершения документа
+            DateCompletion:
+              type: string
+              format: date-time
+              description: Дата выполнения этапа документа
+            GUIDContractor:
+              type: string
+              format: uuid
+              description: Уникальный идентификатор контрагента
+            NameContractor:
+              type: string
+              maxLength: 150
+              description: Наименование контрагента
+            GUIDOrderSource:
+              type: string
+              format: uuid
+              description: Уникальный идентификатор ссылки документа. Используется в случае переноса документов из одного маршрутного листа в другой
+            Vehicle:
+              type: string
+              maxLength: 20
+              description: Название транспортного средства из документа
+            VehicleNumber:
+              type: string
+              maxLength: 15
+              description: Номер транспортного средства из документа
+            GUIDAgreement:
+              type: "string"
+              maxLength: 36
+              description: Уникальный идентификатор договора контрагнта или соглашения
+            Agreement:
+              type: string
+              maxLength: 150
+              description: Название договора контрагента или соглашения
+            CommunicationMethod:
+              maxLength: 20
+              type: string
+              description: |
+                Способ коммуникации с клиентом:
+                * Phone - Телефон
+                * Message - Мессенджер
+                * [Не заполнено] - Не связываться
+              enum:
+                - Phone
+                - Message
+                   
+            SubstitutionProcessing:
+              maxLength: 20
+              type: string
+              description: |
+                Вариант обработки замены на ТСД:
+                  * DontDo - Не делать
+                  * AgreeWithClient - Согласовать с клиентом
+                  * DoItYourself - Выполнить самостоятельно
+              enum:
+                - DontDo
+                - AgreeWithClient
+                - DoItYourself 
+            SubstitutionReserve:
+              maxLength: 20
+              type: string
+              description: |
+                Резервный способ обработки замен на ТСД:
+                  * DontDo - Не делать
+                  * DoItYourself - Выполнить самостоятельно
+              enum:
+               - DontDo
+               - DoItYourself
+
+            DocumentsIsRequired:
+              type: boolean
+              description: Признак необходимости распечатать документы
+            DeliveryTimeRange:
+              type: "object"
+              properties:
+                StartTime:
+                  type: "string"
+                  format: "date-time"
+                  description: Начальное значение временного диапазона доставки
+                EndTime:
+                  type: "string"
+                  format: "date-time"
+                  description: Конечное значение временного диапазона доставки
+            MSSourceWarehouseCode:
+              type: "string"
+              maxLength: 36
+              description: Уникальный идентификатор или код склада, из которого перемещается товар (если есть)
+            MSSourceWarehouse:
+              type: "string"
+              maxLength: 150
+              description: Наименование склада УС из которого перемещается товар
+            MSDestinationWarehouseCode:
+              type: "string"
+              maxLength: 36
+              description: Уникальный идентификатор или код склада, на который перемещается товар (если есть)
+            MSDestinationWarehouse:
+              type: "string"
+              maxLength: 150
+              description: Наименование склада УС, на который перемещается товар
+            LocationCollection:
+              type: "string"
+              maxLength: 150
+              description: Наименование ячейки документа (куда запланирован заказ в работу)  
+            Bailors:
+              type: "object"
+              properties:
+                GUIDBailorSender:
+                  type: "string"
+                  format: "uuid"
+                  description: Уникальный идентификатор поклажедателя-отправителя
+                GUIDBailorRecipient:
+                  type: "string"
+                  format: "uuid"
+                  description: Уникальный идентификатор поклажедателя-получателя
+            TableProduct:
+              type: array
+              items:
+                $ref: '#/components/schemas/ProductOrderInfoRow'
+            TableSN:
+              type: array
+              items:
+                $ref: '#/components/schemas/SN'
+            TableCargo:
+              type: array
+              items:
+                $ref: '#/components/schemas/CargoInfo'
+            TableProductProduction:
+              type: array
+              items:
+                $ref: '#/components/schemas/ProductProductionRow'
+              description: Массив номенклатуры после комплектации (производства). Используется, когда TypeOperation - PRODUCTION, в остальных случаях не заполняется.
+            TableTare:
+              type: array
+              items:
+                $ref: '#/components/schemas/TareRow'
+            PackingList:
+              type: array
+              items:
+                $ref: '#/components/schemas/PackingListRow'
+            TableAdditionalCargo:
+              type: array
+              items:
+                $ref: '#/components/schemas/AdditionalCargo'
+            Pickers:
+              type: array
+              items:
+                $ref: '#/components/schemas/PickersRow'
+            ShoppingRoomProduct:
+              type: array
+              items:
+                $ref: '#/components/schemas/ShoppingRoomProductRow'    
+            Replacements:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Replacements' 
+            DeliveryData:
+              type: object
+              properties:
+                DeliveryService:
+                  maxLength: 10
+                  type: string
+                  description: |
+                    Идентификатор службы доставки:
+                      * NP – Новая почта
+                  enum:
+                  - NP
+                PayerType:
+                  maxLength: 20
+                  type: string
+                  description: |
+                    Тип плательщика за доставку:
+                      * Sender – Отправитель
+                      * Recipient – Получатель
+                      * ThirdPerson – Третье лицо
+                  enum:
+                  - Sender
+                  - Recipient
+                  - ThirdPerson
+                PaymentMethod:
+                  maxLength: 20
+                  type: string
+                  description: |
+                    Способ оплаты:
+                      * NonCash – Безналичный
+                      * Cash – Наличный
+                      * NonCashLegal - Безналичный для юр. лиц
+                      * CardOnSite - Оплаты картой на сайте
+                  enum:
+                  - NonCash
+                  - Cash
+                  - NonCashLegal
+                  - CardOnSite
+                ShipmentDate:
+                  type: string
+                  description: Дата и время плановой отправки груза
+                  format: date-time
+                ServiceType:
+                  maxLength: 20
+                  type: string
+                  description: |
+                    Вид доставки:
+                      * DoorsDoors – От двери до двери
+                      * DoorsWarehouse – От двери до отделения
+                      * WarehouseWarehouse – От отделения до отделения
+                      * WarehouseDoors – От отделения до двери
+                  enum:
+                  - DoorsDoors
+                  - DoorsWarehouse
+                  - WarehouseWarehouse
+                  - WarehouseDoors
+                GUIDSender:
+                  type: string
+                  description: Иидентификатор контрагента в почтовой службе,
+                    1 отправителем (по справочным данным служб доставок)
+                  format: uuid
+                GUIDSenderPoint:
+                  type: string
+                  description: Идентификатор улицы или отделения службы доставки
+                  format: uuid
+                GUIDContactSender:
+                  type: string
+                  description: Идентификатор контакта контрагента-отправителя
+                    в почтовой службе
+                  format: uuid
+                SendersPhone:
+                  maxLength: 12
+                  type: string
+                  description: Телефон контакта контрагента-отправителя
+                GUIDRecipientPoint:
+                  type: string
+                  description: Идентификатор улицы или отделения службы доставки
+                    (по справочным данным служб доставок)
+                  format: uuid
+                RecipientsPhone:
+                  maxLength: 12
+                  type: string
+                  description: Телефон контакта контрагента-получателя
+                Description:
+                  maxLength: 250
+                  type: string
+                  description: Описание отправки в виде текста
+                IntDocNumber:
+                  maxLength: 50
+                  type: string
+                  description: Номер документа ТТН, созданный на стороне службы
+                    доставки
+                GUIDIntDocNumber:
+                  type: string
+                  description: Идентификатор ТТН, созданный на стороне службы
+                    доставки
+                  format: uuid
+                ToPay:
+                  multipleOf: 0.01
+                  type: number
+                  description: Cумма к оплате клиентом
+                  format: float
+                IsPaid:
+                          type: boolean
+                          description: Признак того, что заказ оплачен              
+                DocumentsIsRequired:
+                  type: boolean
+                  description: Признак необходимости распечатать документы
+                DeliveryTimeRange:
+                  type: object
+                  properties:
+                    StartTime:
+                      type: string
+                      description: Начальное значение временного диапазона
+                        доставки
+                      format: date-time
+                    EndTime:
+                      type: string
+                      description: Конечное значение временного диапазона
+                        доставки
+                      format: date-time
+              description: Дополнительные данные по работе со службами доставок
+              
+    InfoOnInv:
+      type: object
+      properties:
+        WareHouseCode:
+          maxLength: 9
+          type: string
+          description: Код склада WMS
+        Invoice:
+          type: object
+          properties:
+            TypeOperation:
+              type: string
+              description: |
+                Тип операции:
+                  * INVENTORY – инвентаризация
+              enum:
+              - INVENTORY
+            GUID:
+              type: string
+              description: Уникальный идентификатор документа
+              format: uuid
+            NumberDoc:
+              maxLength: 20
+              type: string
+              description: Номер документа
+            DateDoc:
+              type: string
+              description: Дата документа
+              format: date-time
+            NameDoc:
+              maxLength: 150
+              type: string
+              description: Название документа
+            Comment:
+              type: string
+              description: Комментарий в WMS
+            DateDocEnd:
+              type: string
+              format: date-time
+              description: Дата завершения инвентаризации
+            WareHouseCode:
+              maxLength: 9
+              type: string
+              description: Код склада WMS
+            MSWarehouseCode:
+              type: string
+              maxLength: 36
+              description: Код склада учетной системы
+            MSWarehouse:
+              type: string
+              maxLength: 150
+              description: Наименование склада учетной системы
+            TableProduct:
+              type: array
+              items:
+                $ref: '#/components/schemas/ProductInvInfoRow'
+            TableSN:
+              type: array
+              items:
+                $ref: '#/components/schemas/SN'
+            PackingList:
+              type: array
+              items:
+                $ref: '#/components/schemas/PackingListRow'
+            Packing:
+              type: array
+              items:
+                $ref: '#/components/schemas/Packing'
+              
+    InfoOnRouteSheet:
+      type: object
+      properties:
+        TypeOperation:
+          type: string
+          description: |
+            Тип операции:
+              * RouteSheet – маршрутный лист
+          enum:
+          - RouteSheet
+        WareHouseCode:
+          maxLength: 9
+          type: string
+          description: Код склада WMS
+        RouteSheet:
+          type: object
+          properties:
+            Number:
+              maxLength: 9
+              type: string
+              description: Номер маршрутного листа
+            NumberDoc:
+              maxLength: 20
+              type: string
+              description: Номер документа в учетной системе
+            Date:
+              type: string
+              description: Дата маршрутного листа
+            DateOutFact:
+              type: string
+              description: Дата фактической отгрузки маршрутного листа
+              format: date-time
+            Coment:
+              type: string
+              description: Комментарий
+            Route:
+              type: string
+              maxLength: 100
+              description: Название маршрута
+            Vehicle:
+              type: string
+              maxLength: 20
+              description: Автомобиль
+            VehicleNumber:
+              type: string
+              maxLength: 15
+              description: Номер автомобиля
+            CellOut:
+              type: string
+              maxLength: 150
+              description: Ячейка отгрузки
+            Driver:
+              type: string
+              maxLength: 150
+              description: Водитель
+            DriverINN:
+              type: string
+              maxLength: 50
+              description: ИНН водителя
+            DriverLicenseNumber:
+              type: string
+              maxLength: 50
+              description: Номер водительского удостоверения
+            TableCargo:
+              type: array
+              items:
+                $ref: '#/components/schemas/CargoRouteSheetInfo'
+    
+    InfoOnPS:
+      type: object
+      properties:
+        TypeOperation:
+          type: string
+          description: |
+            Тип операции:
+              * PROBLEMSITUATION – проблемная ситуация
+          enum:
+          - PROBLEMSITUATION
+        WareHouseCode:
+          maxLength: 9
+          type: string
+          description: Код склада WMS
+        ProblemSituations:
+          type: object
+          properties:
+            GUID:
+              type: string
+              description: Уникальный идентификатор документа проблемной ситуации
+              format: uuid
+            NumberDocWMS:
+              type: string
+              maxLength: 9
+              description: Номер документа проблемной ситуации в WMS
+            DateDoc:
+              type: string
+              description: Дата документа
+              format: date-time
+            WareHouseCode:
+              type: string
+              maxLength: 36
+              description: Код склада
+            GUIDBaseDocument:
+              type: string
+              format: uuid
+              description: Уникальный идентификатор документа основания
+            GUIDProblemSituation:
+              type: string
+              format: uuid
+              description: Уникальный идентификатор проблемной ситуации
+            NameProblemSituation:
+              type: string
+              description: Наименование проблемной ситуации
+            NameEnumProblemSituation:
+              type: string
+              description: Наименование перечисления проблемной ситуации
+            MSSourceWarehouseCode:
+              type: string
+              maxLength: 36
+              description: Уникальный идентификатор или код склада, из которого перемещается товар (если есть)
+            MSSourceWarehouse:
+              type: "string"
+              maxLength: 150
+              description: Наименование склада учетной системы, из которого перемещается товар
+            Comment:
+              type: string
+              description: Комментарий ПС
+            TableProduct:
+              type: array
+              items:
+                $ref: '#/components/schemas/ProductPSInfoRow'
+    
+    InfoOnMoving:
+      type: object
+      properties:
+        TypeOperation:
+          type: string
+          description: |
+            Тип операции:
+              * MOVINGWMS – перемещение, созданное в WMS
+          enum:
+          - MOVINGWMS
+        WareHouseCode:
+          maxLength: 9
+          type: string
+          description: Код склада WMS
+        Info:
+          type: object
+          properties:
+            GUID:
+              type: string
+              description: Уникальный идентификатор документа проблемной ситуации
+              format: uuid
+            NumberDocWMS:
+              maxLength: 10
+              type: string
+              description: Номер документа проблемной ситуации
+            DateDoc:
+              type: string
+              description: Дата документа
+              format: date-time
+            WareHouseCode:
+              type: string
+              maxLength: 36
+              description: Код склада
+            GUIDBaseDocument:
+              type: string
+              format: uuid
+              description: Уникальный идентификатор документа основания
+            Direction:
+              type: string
+              description: |
+                Направление движения:
+                  * IN — перемещение в ячейку указанной причины
+                  * OUT — перемещение из ячейки указанной причины
+                  * OUTIN — при перемещении между ячейками брака и недостачи
+            KindProblemSituation:
+              type: string
+              description: |
+                Тип проблемной ситуации (причина списания):
+                  * Брак — при перемещении в/из брака
+                  * Недостача — при перемещении в/из недостачи
+                  * НедостачаБрак — при перемещении из недостачи в брак
+                  * БракНедостача — при перемещении из брака в недостачи
+            MSSourceWarehouseCode:
+              type: "string"
+              maxLength: 36
+              description: Уникальный идентификатор или код склада, из которого перемещается товар (если есть)
+            MSSourceWarehouse:
+              type: "string"
+              maxLength: 150
+              description: Наименование склада УС из которого перемещается товар
+            MSDestinationWarehouseCode:
+              type: "string"
+              maxLength: 36
+              description: Уникальный идентификатор или код склада, на который перемещается товар (если есть)
+            MSDestinationWarehouse:
+              type: "string"
+              maxLength: 150
+              description: Наименование склада УС, на который перемещается товар
+            Bailors:
+              type: "object"
+              properties:
+                GUIDBailorSender:
+                  type: "string"
+                  format: "uuid"
+                  description: Уникальный идентификатор поклажедателя-отправителя
+                GUIDBailorRecipient:
+                  type: "string"
+                  format: "uuid"
+                  description: Уникальный идентификатор поклажедателя-получателя
+            TableProduct:
+              type: array
+              items:
+                $ref: '#/components/schemas/ProductPSInfoRow'
+            Packing:
+              type: array
+              items:
+                $ref: '#/components/schemas/Packing'
+            ShoppingRoomProduct:
+              type: array
+              items:
+                $ref: '#/components/schemas/ShoppingRoomProductRow'  
+     
+    InfoOnProduct:
+      type: object
+      properties:
+        TypeOperation:
+          type: string
+          description: |
+            Тип операции:
+              * NOMENCLATURE – товар
+          enum:
+          - NOMENCLATURE
+        Product:
+          type: object
+          properties:
+            GUIDProduct:
+              type: string
+              description: Уникальный идентификатор товара
+              format: uuid
+            CodeMS:
+              maxLength: 100
+              type: string
+              description: Идентификатор учетной системы
+            Description:
+              maxLength: 150
+              type: string
+              description: Наименование товара
+            FullDescription:
+              maxLength: 250
+              type: string
+              description: Полное наименование товара (если используется)
+            AdditionalDescription:
+              maxLength: 250
+              type: string
+              description: Дополнительное описание
+            ParentGUID:
+              type: string
+              description: Уникальный идентификатор группы товара
+              format: uuid
+            Article:
+              maxLength: 40
+              type: string
+              description: Артикул товара
+            MinShipGUIDPackaging:
+              type: string
+              description: Уникальный идентификатор единицы измерения товара, который используется для минимальной единицы отгрузки
+              format: uuid
+            Brand:
+              maxLength: 150
+              type: string
+              description: Бренд производителя товара
+            Kind:
+              maxLength: 20
+              type: string
+              description: Код категории учетной системы - используется для сопоставления категорий Учетная система - WMS
+            Subkind:
+              maxLength: 20
+              type: string
+              description: Код подкатегории учетной системы - используется для сопоставления подкатегории Учетная система - WMS
+            Type:
+              maxLength: 1
+              type: string
+              description: |
+                Тип товара:
+                  * 1 – штучный
+                  * 2 – весовой
+                  * 3 – штучный средневесовой
+                  * 4 – отрезной
+              enum:
+              - "1"
+              - "2"
+              - "3"
+              - "4"
+            SeriesMode:
+              type: boolean
+              description: Признак ведения учета по сериям
+            ShelfLifeMode:
+              type: boolean
+              description: Признак ведения учета по срокам годности
+            SeriesNumberMode:
+              type: boolean
+              description: Признак ведения учета в разрезе серийных номеров
+            UniqueSNMode:
+              type: boolean
+              description: Признак ведения учета в разрезе уникальных серийных номеров
+            StoragePeriodInDays:
+              type: integer
+              description: Срок хранения в днях
+            Packing:
+              type: array
+              items:
+                $ref: '#/components/schemas/Packing'
+            BarcodeTable:
+              type: array
+              items:
+                $ref: '#/components/schemas/Barcode'
+                
+security:
+  - basicAuth: []

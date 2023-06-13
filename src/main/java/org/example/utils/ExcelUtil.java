@@ -11,10 +11,12 @@ import org.example.pojo.Schema.Property;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static org.example.utils.YAMLReaderUtil.getFullSchema;
+import static org.example.utils.YAMLReaderUtil.getSchemaByRef;
 
 public class ExcelUtil {
 
@@ -28,14 +30,20 @@ public class ExcelUtil {
             path.getMethods().forEach(method -> {
                 fillRow(sheet, rownum.getAndIncrement(), 0, 1, "HTTP-method: " + method.getName().toUpperCase());
                 fillRow(sheet, rownum.getAndIncrement(), 0, 1, "Parameters: " + method.getParameters().stream().map(Path.Parameter::getName).collect(Collectors.joining()));
-                fillRow(sheet, rownum.getAndIncrement(), 0, 1, "Description: " + method.getDescription());
+                fillRow(sheet, rownum.getAndIncrement(), 0, 1, "Description: " + (method.getDescription() != null ? method.getDescription() : method.getSummary()));
 
                 fillRow(sheet, rownum.getAndIncrement(), 0, 1);
                 fillRow(sheet, rownum.getAndIncrement(), 0, 1, "REQUEST");
                 if (method.getRequestBody() != null) {
-                    int nestingLevel = getNestingLevel(api, api.getSchemasMap().get(method.getRequestBody().getContent().getSchemaRef()), 1, 1);
+                    int nestingLevel = getNestingLevel(api,
+                            method.getRequestBody().getContent().getSchemaRef() != null ?
+                                    api.getSchemasMap().get(method.getRequestBody().getContent().getSchemaRef()) :
+                                    method.getRequestBody().getContent().getSchema(), 1, 1);
                     fillRow(sheet, rownum.getAndIncrement(), 0, nestingLevel,"Name", "Type", "Max length", "Default value", "Enum", "Description");
-                    fillRowBySchema(sheet, 0, nestingLevel, rownum, getFullSchema(api, method.getRequestBody().getContent().getSchemaRef()), null, null);
+                    fillRowBySchema(api, sheet, 0, nestingLevel, rownum,
+                            method.getRequestBody().getContent().getSchema() != null ?
+                                    method.getRequestBody().getContent().getSchema() :
+                                    getSchemaByRef(api, method.getRequestBody().getContent().getSchemaRef()), null, null);
                 } else {
                     fillRow(sheet, rownum.getAndIncrement(), 0, 1, "EMPTY");
                 }
@@ -47,9 +55,11 @@ public class ExcelUtil {
                     method.getResponses().forEach(response -> {
                         fillRow(sheet, rownum.getAndIncrement(), 0, 1, "Code: " + response.getCode());
                         fillRow(sheet, rownum.getAndIncrement(), 0, 1, "Description: " + response.getDescription());
-                        int nestingLevel = getNestingLevel(api, api.getSchemasMap().get(response.getContent().getSchemaRef()), 1, 1);
+                        int nestingLevel = getNestingLevel(api, response.getContent().getSchemaRef() != null ?
+                                api.getSchemasMap().get(response.getContent().getSchemaRef()) :
+                                response.getContent().getSchema(), 1, 1);
                         fillRow(sheet, rownum.getAndIncrement(), 0, nestingLevel,"Name", "Type", "Max length", "Default value", "Enum", "Description");
-                        fillRowBySchema(sheet, 0, nestingLevel, rownum, getFullSchema(api, response.getContent().getSchemaRef()), null, null);
+                        fillRowBySchema(api, sheet, 0, nestingLevel, rownum, getSchemaByRef(api, response.getContent().getSchemaRef()), null, null);
                         fillRow(sheet, rownum.getAndIncrement(), 0, 1);
                     });
                 }
@@ -67,31 +77,45 @@ public class ExcelUtil {
 
     private static int getNestingLevel(API api, Schema schema, int initNestingLevel, int maxNestingLevel) {
         if (schema == null) return initNestingLevel;
+        int nestingLevel = getNestingLevelByProperties(api, schema.getProperties(), initNestingLevel, maxNestingLevel);
+        return Math.max(nestingLevel, maxNestingLevel);
+    }
+
+    private static int getNestingLevelByProperties(API api, Set<Property> properties, int initNestingLevel, int maxNestingLevel) {
         int nestingLevel = initNestingLevel;
-        for (Property property : schema.getProperties()) {
-            if (property.getSchemaRef() != null) {
-                nestingLevel = getNestingLevel(api, api.getSchemasMap().get(property.getSchemaRef()), ++nestingLevel, maxNestingLevel);
+        for (Property property : properties) {
+            if (property.getSchema() != null || property.getSchemaRef() != null) {
+                nestingLevel = getNestingLevel(api, property.getSchema() != null ? property.getSchema() : api.getSchemasMap().get(property.getSchemaRef()), ++nestingLevel, maxNestingLevel);
+            } else if (property.getProperties() != null && !property.getProperties().isEmpty()) {
+                nestingLevel = getNestingLevelByProperties(api, property.getProperties(), ++nestingLevel, maxNestingLevel);
             }
             if (nestingLevel > maxNestingLevel) {
                 maxNestingLevel = nestingLevel;
             }
             nestingLevel = initNestingLevel;
         }
-        if (nestingLevel > maxNestingLevel) {
-            maxNestingLevel = nestingLevel;
-        }
-        return maxNestingLevel;
+        return Math.max(nestingLevel, maxNestingLevel);
     }
 
-    private static void fillRowBySchema(XSSFSheet sheet, int startColumn, int nestingLevel, AtomicInteger rownum, Schema schema, String parentName, String parentType) {
+    private static void fillRowBySchema(API api, XSSFSheet sheet, int startColumn, int nestingLevel, AtomicInteger rownum, Schema schema, String parentName, String parentType) {
         if (schema == null) return;
         AtomicInteger currentNestingLevel = new AtomicInteger(startColumn);
-        if (parentName != null)
+        if (parentName != null) {
             fillRow(sheet, rownum.getAndIncrement(), currentNestingLevel.getAndIncrement(), nestingLevel, parentName,
-                    parentType != null && parentType.equals("array") ? "array["+schema.getType()+"]" : schema.getType(), null, null, schema.getENum() == null ? null : schema.getENum().toString(), schema.getDescription());
+                    parentType != null && parentType.equals("array") ? "array[" + schema.getType() + "]" : schema.getType(), null, null, schema.getENum() == null ? null : schema.getENum().toString(), schema.getDescription());
+        }
         int startRowNum = rownum.get();
-        schema.getProperties().forEach(p -> {
-            if (p.getSchema() == null) {
+        fillRowByProperties(api, sheet, nestingLevel, rownum, schema.getProperties(), currentNestingLevel);
+        int endRowNum = rownum.get();
+        if (currentNestingLevel.get() > 0) {
+            sheet.groupRow(startRowNum, endRowNum);
+        }
+        currentNestingLevel.decrementAndGet();
+    }
+
+    private static void fillRowByProperties(API api, XSSFSheet sheet, int nestingLevel, AtomicInteger rownum, LinkedHashSet<Property> properties, AtomicInteger currentNestingLevel) {
+        properties.forEach(p -> {
+            if (p.getSchema() == null && p.getSchemaRef() == null) {
                 fillRow(sheet, rownum.getAndIncrement(), currentNestingLevel.get(), nestingLevel,
                         p.getName(),
                         p.getType(),
@@ -100,14 +124,14 @@ public class ExcelUtil {
                         p.getENum() == null ? null : p.getENum().toString(),
                         p.getDescription());
             } else {
-                fillRowBySchema(sheet, currentNestingLevel.get(), nestingLevel, rownum, p.getSchema(), p.getName(), p.getType());
+                fillRowBySchema(api, sheet, currentNestingLevel.get(), nestingLevel, rownum, p.getSchemaRef() == null ? p.getSchema() : getSchemaByRef(api, p.getSchemaRef()), p.getName(), p.getType());
+            }
+            if (p.getProperties() != null && p.getProperties().size() > 0) {
+                currentNestingLevel.incrementAndGet();
+                fillRowByProperties(api, sheet, nestingLevel, rownum, p.getProperties(), currentNestingLevel);
+                currentNestingLevel.decrementAndGet();
             }
         });
-        int endRowNum = rownum.get();
-        if (currentNestingLevel.get() > 0) {
-            sheet.groupRow(startRowNum, endRowNum);
-        }
-        currentNestingLevel.decrementAndGet();
     }
 
     private static void fillRow(XSSFSheet sheet, int rowNum, int startColumn, int nestingLevel, String... args) {
