@@ -7,9 +7,33 @@ externalDocs:
   description: Support
   url: https://support.wms.abmcloud.com/
 servers:
-  - url: http://dmz.abmretail.com:8080/wms_api_demo/hs/WMSExchange
-    description: QA
-paths:  
+
+paths:
+  /POSTOrdersModifications:
+    post:
+      tags:
+      - Документы
+      summary: Получение списка изменений по документам
+      operationId: POSTOrdersModifications
+      responses:
+        200:
+          description: Успех
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  TableDocInfo:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/OrderModifications'
+        409:
+          description: Ошибка обработки данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                
   /POSTInfoRestOfGoods:
     post:
       tags:
@@ -239,56 +263,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       x-codegen-request-body-name: body
-                
-  /POSTGetRemainsReserves:
-    post:
-      tags:
-      - Товары
-      summary: Получение остатков и резервов WMS
-      operationId: POSTGetRemainsReserves
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                GUIDProduct:
-                  type: array
-                  items:
-                    type: string
-                    format: uuid
-                  description: Список уникальных идентификаторов товара
-                WareHouseCode:
-                  maxLength: 9
-                  type: string
-                  description: Код склада WMS
-                ErpWareHouseCodes:
-                  type: array
-                  items:
-                    type: string
-                  description: Идентификаторы складов учетной системы
-                ShowServiceCells:
-                  type: boolean
-                  description: |
-                    * true - получение остатков с учетом служебных ячеек (ячейки недостачи, брака, буферная зона, зона приема товара, зона контроля, зона коррекции остатков)
-                    * false - получение остатков без учета служебных ячеек
-        required: false
-      responses:
-        200:
-          description: Успех
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/RemainReserve'
-        409:
-          description: Ошибка обработки данных
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-      x-codegen-request-body-name: body
       
   /POSTOrder:
     post:
@@ -414,14 +388,10 @@ paths:
                           description: Уникальный идентификатор поклажедателя-получателя
                           format: uuid
                     Priority:
-                      maximum: 999
+                      maximum: 99
                       type: integer
-                      description: 'Приоритет документа: 0 — самый высокий, 999 — самый
+                      description: 'Приоритет документа: 0 — самый высокий, 99 — самый
                         низкий'
-                    GUIDDestination:
-                      maxLength: 36
-                      type: string
-                      description: Уникальный идентификатор назначения
                     Destination:
                       maxLength: 150
                       type: string
@@ -437,20 +407,7 @@ paths:
                       type: string
                       maxLength: 150
                       description: Название договора контрагента или соглашения
-                    IDDelivery:
-                      maxLength: 100
-                      type: string
-                      description: Уникальный идентификатор доставки учетной системы (дополнительная информацыя)                      
-                    MergeType:
-                      maxLength: 20
-                      type: string
-                      description: Тип объединения заказов - заполнять если заполнен параметр IDDelivery 
-                              * Merge - Объединять
-                              * NotMerge - Не объединять
-                              * [Не заполнено] - по уполчанию 
-                      enum:
-                          - Merge
-                          - NotMerge
+
                     CommunicationMethod:
                           maxLength: 20
                           type: string
@@ -459,11 +416,9 @@ paths:
                               * Phone - Телефон
                               * Message - Мессенджер
                               * [Не заполнено] - Не связываться
-                              * Chat - чат (сайт)
                           enum:
                           - Phone
                           - Message
-                          - Chat
                    
                     SubstitutionProcessing:
                           maxLength: 20
@@ -562,14 +517,6 @@ paths:
                               maxLength: 150
                               type: string
                               description: Наименование контакта контрагента
-                            GUIDOwnershipForm:
-                              maxLength: 12
-                              type: string
-                              description: Уникальный идентификатор формы собственности (Используется для служб доставки)
-                            OwnershipForm:
-                              maxLength: 12
-                              type: string
-                              description: Наименование формы собственности (Используется для служб доставки)
                             AddressRecipient:
                               $ref: '#/components/schemas/AddressContractor'
                     DeliveryData:
@@ -580,13 +527,9 @@ paths:
                           type: string
                           description: |
                             Идентификатор службы доставки:
-                              * NP – Нова пошта
-                              * ME – Meest Express
-                              * UP – Укрпошта
+                              * NP – Новая почта
                           enum:
                           - NP
-                          - ME
-                          - UP
                         PayerType:
                           maxLength: 20
                           type: string
@@ -677,22 +620,7 @@ paths:
                           type: number
                           description: Cумма к оплате клиентом
                           format: float
-                        DiscountAmount:
-                          multipleOf: 0.01
-                          type: number
-                          description: Cумма скидки
-                          format: float
-                        DeliveryAmount:
-                          multipleOf: 0.01
-                          type: number
-                          description: Cумма за доставки
-                          format: float
-                        AnnouncedAmount:
-                          multipleOf: 0.01
-                          type: number
-                          description: Оценочная стоимость
-                          format: float
-
+                        
                         IsPaid:
                           type: boolean
                           description: Признак того, что заказ оплачен
@@ -750,32 +678,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       x-codegen-request-body-name: body
-
-  /POSTOrdersModifications:
-    post:
-      tags:
-      - Документы
-      summary: Получение списка изменений по документам
-      operationId: POSTOrdersModifications
-      responses:
-        200:
-          description: Успех
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  TableDocInfo:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/OrderModifications'
-        409:
-          description: Ошибка обработки данных
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-                
+      
   /POSTInfoOnOrder:
     post:
       tags:
@@ -805,7 +708,6 @@ paths:
               schema:
                 oneOf:
                   - $ref: '#/components/schemas/InfoOnOrder'
-                  - $ref: '#/components/schemas/InfoOnServiceRegistration'
                   - $ref: '#/components/schemas/InfoOnInv'
                   - $ref: '#/components/schemas/InfoOnRouteSheet'
                   - $ref: '#/components/schemas/InfoOnPS'
@@ -818,7 +720,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       x-codegen-request-body-name: body
-  
+      
   /POSTOrderResultAS:
     post:
       tags:
@@ -851,75 +753,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       x-codegen-request-body-name: body
-
-  /POSTReturnsByOrder:
-    post:
-      tags:
-      - Документы
-      summary: Получение данных возврата по документу отгрузки из WMS
-      operationId: POSTReturnsByOrder
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                GUIDOrder:
-                  type: string
-                  description: Уникальный идентификатор документа
-                  format: uuid
-        required: false
-      responses:
-        200:
-          description: Успех
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/InfoOnOrder'
-        409:
-          description: Ошибка обработки данных
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-      x-codegen-request-body-name: body
-
-  /POSTGetOrderStatus:
-    post:
-      tags:
-      - Документы
-      summary: Получение данных по документу на момент запроса
-      operationId: POSTGetOrderStatus
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                GUIDOrder:
-                  type: string
-                  description: Уникальный идентификатор документа
-                  format: uuid
-        required: false
-      responses:
-        200:
-          description: Успех
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/InfoOnOrder'
-        409:
-          description: Ошибка обработки данных
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-      x-codegen-request-body-name: body
-     
+      
   /POSTConfirmStage:
     post:
       tags:
@@ -1101,9 +935,9 @@ paths:
                       type: string
                       description: Название организации
                     Priority:
-                      maximum: 999
+                      maximum: 99
                       type: integer
-                      description: 'Приоритет документа: 0 — самый высокий, 999 — самый низкий'  
+                      description: 'Приоритет документа: 0 — самый высокий, 99 — самый низкий'  
                     TableOrder:
                       type: array
                       items:
@@ -1617,46 +1451,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       x-codegen-request-body-name: body
-
-  /POSTInfoAS:
-    post:
-      tags:
-      - Документы
-      summary: Отправка дополнительной информации с управляющей системы
-      operationId: POSTInfoAS
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                GUIDOrder:
-                  type: string
-                  description: Уникальный идентификатор документа относительно которого передаєтся информация                    
-                  format: uuid
-                TypeInfo:
-                  type: string
-                  description: Тип информации (Например Ошибка, Предупреждение)                    
-                  format: uuid
-                TextInfo:
-                  type: string
-                  description: Текст информации                    
-                  format: uuid
-        required: false
-      responses:
-        200:
-          description: Успех
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Success'
-        409:
-          description: Ошибка обработки данных
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-      x-codegen-request-body-name: body    
+      
 components:
   securitySchemes:
     basicAuth:
@@ -2025,14 +1820,6 @@ components:
           type: string
           description: Дата производства
           format: date-time
-        ResourceSelection:
-          maxLength: 10
-          type: string
-          description: Табельный номер ресурса на отборе или розмещении, разделены знаком ; если их несколько
-        ResourceChecking:
-          maxLength: 10
-          type: string
-          description: Табельный номер ресурса на отгрузке и прийом контроле, разделены знаком ; если их несколько
         BP001:
           type: string
           description: |
@@ -2159,48 +1946,7 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/PBLRow'
-
-    ServiceRegistrationRow:
-      allOf:
-        - type: object
-          properties:
-            GUIDService:
-              type: string
-              description: Уникальный идентификатор услуги
-              format: uuid
-            NameService:
-              type: string
-              description: Наименование услуги
-            Value:
-              type: number
-              format: float
-              multipleOf: 0.001
-              description: Значение
-            Amount:
-              type: number
-              format: float
-              multipleOf: 0.01
-              description: Сумма
-            Period:
-              type: string
-              format: date-time
-              description: Период
-            GUIDDocument:
-              type: string
-              format: uuid
-              description: Уникальный идентификатор документа
-            DocumentType:
-              type: string
-              description: |
-                Тип документа:
-                  * IN – документ прихода
-                  * OUT – документ расхода
-                  * MOVINGWMS – перемещение, созданное в WMS
-              enum:
-              - IN
-              - OUT
-              - MOVINGWMS
-
+      
     ProductInvInfoRow:
       type: object
       properties:
@@ -2301,21 +2047,6 @@ components:
           format: float
           multipleOf: 0.000000000001
           description: Объем (м³)
-        SetProductGUID:
-          type: string
-          description: Уникальный идентификатор набора
-          format: uuid
-        MainProduct:
-          type: boolean
-          description: Отметка, что это основной компонент набора
-        QtyInSet:
-          multipleOf: 0.001
-          type: number
-          description: Количество товара в наборе
-          format: float
-        GUIDDocument:
-          type: string
-          description: Уникальный идентификатор документа
         TableSN:
           type: array
           items:
@@ -2615,15 +2346,11 @@ components:
           - ОтгрузкаОтбор
         StartStage:
           type: boolean
-          description: Признак начала этапа
+          description: Признак стартового этапа
         DateStartWorkStage:
               type: string
               description: Дата начала сбора документа(фактически когда была отобрана первая строка документа)
-              format: date-time
-        RegDate:
-              type: string
-              description: Дата регистрации документа в обмен
-              format: date-time
+              format: date-time   
         TypeOperation:
           type: string
           description: |
@@ -2712,10 +2439,6 @@ components:
           maxLength: 100
           type: string
           description: Телефон
-        AddressComment:
-          maxLength: 500
-          type: string
-          description: Комментарий к адресу  
       description: Адрес контрагента
     
     Contractor:
@@ -2733,14 +2456,6 @@ components:
           maxLength: 12
           type: string
           description: Код по ЕДРПОУ
-        GUIDOwnershipForm:
-          maxLength: 12
-          type: string
-          description: Уникальный идентификатор формы собственности (Используется для служб доставки)
-        OwnershipForm:
-          maxLength: 12
-          type: string
-          description: Наименование формы собственности (Используется для служб доставки)  
         AddressContractor:
           $ref: '#/components/schemas/AddressContractor'
       description: Контрагент
@@ -2802,66 +2517,6 @@ components:
               Может быть несколько.
       description: Остатки товара
     
-    RemainReserve:
-      type: object
-      properties:
-        WarehouseCode:
-          type: string
-          maxLength: 9
-          description: Код склада WMS
-        ErpWarehouseCode:
-          type: string
-          maxLength: 36
-          description: Идентификатор склада учетной системы
-        GUIDProduct:
-          type: string
-          description: Уникальный идентификатор товара
-          format: uuid
-        ExpectedQty:
-          multipleOf: 0.001
-          type: number
-          description: Количество в необработанных документах прихода
-          format: float
-        ReservedQty:
-          multipleOf: 0.001
-          type: number
-          description: Зарезервированное количество
-          format: float
-        FreeQty:
-          multipleOf: 0.001
-          type: number
-          description: Свободное количество
-          format: float
-        FactQty:
-          multipleOf: 0.001
-          type: number
-          description: Реальный остаток
-          format: float
-        LostQty:
-          multipleOf: 0.001
-          type: number
-          description: Остаток в ячейках зоны недостачи
-          format: float
-        DamageQty:
-          multipleOf: 0.001
-          type: number
-          description: Остаток в ячейках зоны брака
-          format: float
-        ExpirationDate:
-          type: string
-          description: Срок годности (минимальный срок свободных остатков)
-          format: date-time
-        DeliveryDate:
-          type: string
-          description: Дата поставки (минимальная дата по ожидаемым поставкам)
-          format: date-time
-        Barcodes:
-          description: Штрихкоды товара
-          type: array
-          items:
-            type: string
-      description: Остатки и резервы товара
-
     ProductSet:
       type: object
       properties:
@@ -3386,9 +3041,6 @@ components:
             Status:
               type: string
               description: Текущий этап документа
-            StatusInternal:
-              type: string
-              description: Текущий этап документа в формате перечисления ДвиженияТоваровЭтапы
             StatusIndex:
               type: integer
               minimum: 0
@@ -3396,7 +3048,7 @@ components:
               description: |
                 Индекс текущего этапа документа:
                   * 0 - Прием контроль
-                  * 1 - Прием контроль по контейнеру
+                  * 1 - Прием паллетирование
                   * 2 - Прием согласование
                   * 3 - Прием размещение
                   * 4 - Отгрузка отбор
@@ -3427,13 +3079,6 @@ components:
                   * 29 - Изменение статуса номенклатуры
                   * 30 - Отгрузка отбор без сканирования
                   * 31 - Замена товара
-                  * 32 - Прием паллетирование
-                  * 33 - Прием размещение по контейнеру
-                  * 34 - Прийом перемещение контейнера на контроль
-                  * 35 - Контроль сортировка
-            StartStage:
-              type: boolean
-              description: Признак начала этапа
             State:
               type: string
               description: Текущее состояние документа
@@ -3508,11 +3153,9 @@ components:
                 * Phone - Телефон
                 * Message - Мессенджер
                 * [Не заполнено] - Не связываться
-                * Chat -  Чат (сайт)
               enum:
                 - Phone
                 - Message
-                - Chat
                    
             SubstitutionProcessing:
               maxLength: 20
@@ -3582,20 +3225,6 @@ components:
                   type: "string"
                   format: "uuid"
                   description: Уникальный идентификатор поклажедателя-получателя
-            IDDelivery:
-              maxLength: 100
-              type: string
-              description: Уникальный идентификатор доставки учетной системы (дополнительная информацыя)                      
-            MergeType:
-              maxLength: 20
-              type: string
-              description: Тип объединения заказов - заполнять если заполнен параметр IDDelivery 
-                  * Merge - Объединять
-                  * NotMerge - Не объединять
-                  * [Не заполнено] - по уполчанию 
-              enum:
-                - Merge
-                - NotMerg      
             TableProduct:
               type: array
               items:
@@ -3637,10 +3266,6 @@ components:
                       type: array
                       items:
                         $ref: '#/components/schemas/Replacements' 
-            Stocks:
-              type: array
-              items:
-                $ref: '#/components/schemas/RemainReserve'
             DeliveryData:
               type: object
               properties:
@@ -3649,13 +3274,9 @@ components:
                   type: string
                   description: |
                     Идентификатор службы доставки:
-                      * NP – Нова пошта
-                      * ME – Meest Express
-                      * UP – Укрпошта
+                      * NP – Новая почта
                   enum:
                   - NP
-                  - ME
-                  - UP
                 PayerType:
                   maxLength: 20
                   type: string
@@ -3766,86 +3387,6 @@ components:
                         доставки
                       format: date-time
               description: Дополнительные данные по работе со службами доставок
-    
-    InfoOnServiceRegistration:
-      type: object
-      properties:
-        TypeOperation:
-          type: string
-          description: |
-            Тип операции:
-              * SERVICE_REGISTRATION – регистрация услуг
-          enum:
-          - SERVICE_REGISTRATION
-        WareHouseCode:
-          type: string
-          maxLength: 9
-          description: Код склада
-        ServiceRegistration:
-          type: object
-          properties:
-            GUID:
-              type: string
-              description: Уникальный идентификатор документа
-              format: uuid
-            NumberDocWMS:
-              maxLength: 10
-              type: string
-              description: Номер документа в WMS
-            DateDoc:
-              type: string
-              description: Дата документа
-              format: date-time
-            Comment:
-              type: string
-              description: Комментарий документа
-            GUIDBaseDocument:
-              type: string
-              description: Уникальный идентификатор документа основания
-              format: uuid
-            BaseTypeOperation:
-              type: string
-              description: |
-                Тип документа основания:
-                  * IN – документ прихода
-                  * OUT – документ расхода
-                  * MOVINGWMS – перемещение, созданное в WMS
-              enum:
-              - IN
-              - OUT
-              - MOVINGWMS
-            GUIDContractor:
-              type: string
-              format: uuid
-              description: Уникальный идентификатор контрагента
-            NameContractor:
-              type: string
-              maxLength: 150
-              description: Наименование контрагента
-            GUIDResponsible:
-              type: string
-              format: uuid
-              description: Уникальный идентификатор ответственного
-            NameResponsible:
-              type: string
-              maxLength: 150
-              description: Наименование ответственного
-            DateFrom:
-              type: string
-              format: date-time
-              description: Дата начала
-            DateTo:
-              type: string
-              format: date-time
-              description: Дата окончания
-            WareHouseCode:
-              type: string
-              maxLength: 9
-              description: Код склада
-            TableServices:
-              type: array
-              items:
-                $ref: '#/components/schemas/ServiceRegistrationRow'
               
     InfoOnInv:
       type: object
@@ -4236,46 +3777,3 @@ components:
                 
 security:
   - basicAuth: []
-
-
-
-
-#      responses:
-#        200:
-#          description: Успех
-#          content:
-#            application/json:
-#              schema:
-#                type: array
-#                items:
-#                  $ref: '#/components/schemas/RemainReserve'
-#        409:
-#          description: Ошибка обработки данных
-#          content:
-#            application/json:
-#              schema:
-#                $ref: '#/components/schemas/Error'
-#        200:
-#          description: Успех
-#          content:
-#            application/json:
-#              schema:
-#                oneOf:
-#                  - $ref: '#/components/schemas/InfoOnOrder'
-#                  - $ref: '#/components/schemas/InfoOnServiceRegistration'
-#                  - $ref: '#/components/schemas/InfoOnInv'
-#                  - $ref: '#/components/schemas/InfoOnRouteSheet'
-#                  - $ref: '#/components/schemas/InfoOnPS'
-#                  - $ref: '#/components/schemas/InfoOnMoving'
-#                  - $ref: '#/components/schemas/InfoOnProduct'
-#
-#        ProductOrderRow:
-#          allOf:
-#            - $ref: '#/components/schemas/ProductRow'
-#            - type: object
-#              properties:
-#                CrossDockQty:
-#                  type: number
-#                  format: float
-#                  multipleOf: 0.001
-#                  description: Количество товара для потребностей классического кросс-дока - процесс приёмки и отгрузки товаров и грузов через склад напрямую, без размещения в зоне долговременного хранения
