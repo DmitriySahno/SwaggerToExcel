@@ -24,51 +24,91 @@ public class YAMLReaderUtil {
         API api = new API();
         api.setOpenapi(root.get("openapi").asText());
         fillInfo(api, root.get("info"));
-        fillSchemas(api, root.get("components").get("schemas"));
+        fillSchemasMap(api, root.get("components").get("schemas"));
         fillPaths(api, root.get("paths"));
         return api;
     }
 
-    private static void fillSchemas(API api, JsonNode schemasNode) {
-        getSchemasByNode(schemasNode).forEach(res -> api.getSchemasMap().put("#/components/schemas/" + res.getName(), res));
+    private static void fillSchemasMap(API api, JsonNode schemasNode) {
+        Iterator<Entry<String, JsonNode>> fields = schemasNode.fields();
+        while (fields.hasNext()) {
+            Entry<String, JsonNode> schema = fields.next();
+            getSchemasByNode(schema.getValue()).forEach(node -> api.getSchemasMap().put("#/components/schemas/" + schema.getKey(), node));
+        }
     }
 
-    private static List<Schema> getSchemasByNode(JsonNode schemasNode) {
-        List<Schema> schemas = new ArrayList<>();
-        JsonNode schemaType = schemasNode.get("type");
-        if (Objects.nonNull(schemaType) && "object".equals(schemaType.asText())) {
-            LinkedHashSet<Property> properties = getSchemaProperties(schemasNode.get("properties"));
-            schemas.add(Schema.builder()
-                    .type(schemaType.asText())
-                    .properties(properties)
-                    .description(Objects.nonNull(schemasNode.get("description")) ? schemasNode.get("description").asText() : null)
-                    .summary(Objects.nonNull(schemasNode.get("summary")) ? schemasNode.get("summary").asText() : null)
-                    .build());
-        } else {
-            Iterator<Entry<String, JsonNode>> fields = schemasNode.fields();
-            while (fields.hasNext()) {
-                Entry<String, JsonNode> field = fields.next();
-                String key = field.getKey();
-                JsonNode value = field.getValue();
-                LinkedHashSet<Property> properties = getSchemaProperties(value.get("properties"));
 
-                ArrayNode enumNode = (ArrayNode) value.get("enum");
-                List<String> enumValues;
-                if (enumNode != null) {
-                    enumValues = new ArrayList<>();
-                    enumNode.forEach(n -> enumValues.add(n.asText()));
-                } else {
-                    enumValues = null;
+    private static Schema getSchemaByType(API api, JsonNode schemaNode) {
+        JsonNode type = schemaNode.get("type");
+        if (Objects.isNull(type)) return null;
+
+        switch (type.asText()) {
+            case "object":
+                return Schema.builder()
+                        .type(type.asText())
+                        .properties(getSchemaProperties(schemaNode.get("properties")))
+                        .description(Objects.nonNull(schemaNode.get("description")) ? schemaNode.get("description").asText() : null)
+                        .summary(Objects.nonNull(schemaNode.get("summary")) ? schemaNode.get("summary").asText() : null)
+                        .build();
+            case "array":
+                getSchemaByNode(api, schemaNode.get("items"));
+                break;
+            default:
+                return null;
+        }
+    }
+
+    private static List<Schema> getSchemaByNode(API api, JsonNode schemaNode) {
+        List<Schema> schemas = new ArrayList<>();
+        Iterator<Entry<String, JsonNode>> schemaFields = schemaNode.fields();
+        Entry<String, JsonNode> firstSchemaNode = schemaFields.next();
+        //TODO the problem of all of that is the ref can be placed after link or not?...
+        switch (firstSchemaNode.getKey()) {
+            case "$ref":
+                String schemaRef = Objects.nonNull(schemaNode.get("$ref")) ? schemaNode.get("$ref").asText() : null;
+                schemas.add(getSchemaByRef(api, schemaRef));
+                break;
+            case "type":
+                schemas.add(getSchemaByType(api, schemaNode));
+                break;
+            case "allOf":
+                while (schemaFields.hasNext()) {
+                    Entry<String, JsonNode> field = schemaFields.next();
+                    schemas.addAll(getSchemaByNode(api, field.getValue()));
                 }
-                schemas.add(Schema.builder()
-                        .name(key)
-                        .title(Objects.nonNull(value.get("title")) ? value.get("title").asText() : null)
-                        .type(Objects.nonNull(value.get("type")) ? value.get("type").asText() : null)
-                        .eNum(enumValues)
-                        .properties(properties)
-                        .description(Objects.nonNull(value.get("description")) ? value.get("description").asText() : null)
-                        .build());
+                break;
+            case "oneOf":
+                while (schemaFields.hasNext()) {
+                    Entry<String, JsonNode> field = schemaFields.next();
+                    schemas.addAll(getSchemaByNode(api, field.getValue()));
+                }
+                break;
+            case "array":
+
+                break;
+        }
+
+        Iterator<Entry<String, JsonNode>> fields = schemaNode.fields();
+        while (fields.hasNext()) {
+            Entry<String, JsonNode> field = fields.next();
+            String key = field.getKey();
+            JsonNode value = field.getValue();
+            ArrayNode enumNode = (ArrayNode) value.get("enum");
+            List<String> enumValues;
+            if (enumNode != null) {
+                enumValues = new ArrayList<>();
+                enumNode.forEach(n -> enumValues.add(n.asText()));
+            } else {
+                enumValues = null;
             }
+            schemas.add(Schema.builder()
+                    .name(key)
+                    .title(Objects.nonNull(value.get("title")) ? value.get("title").asText() : null)
+                    .type(Objects.nonNull(value.get("type")) ? value.get("type").asText() : null)
+                    .eNum(enumValues)
+                    .properties(getSchemaProperties(value.get("properties")))
+                    .description(Objects.nonNull(value.get("description")) ? value.get("description").asText() : null)
+                    .build());
         }
         return schemas;
     }
@@ -79,17 +119,23 @@ public class YAMLReaderUtil {
             Iterator<Entry<String, JsonNode>> propertiesFields = propertiesNode.fields();
             while (propertiesFields.hasNext()) {
                 Entry<String, JsonNode> propertyNodeMap = propertiesFields.next();
-                JsonNode propertyNode = propertyNodeMap.getValue();
-                JsonNode allOf = propertyNode.get("allOf");
                 Property property = new Property(propertyNodeMap.getKey());
+                JsonNode propertyNode = propertyNodeMap.getValue();
+                JsonNode allOf = propertyNode.get("allOf"); //TODO check the properties structure and make universal logic
                 if (allOf != null) {
                     Iterator<JsonNode> allOfFields = allOf.elements();
                     while (allOfFields.hasNext()) {
                         Entry<String, JsonNode> allOfField = allOfFields.next().fields().next();
                         switch (allOfField.getKey()) {
-                            case "$ref" -> property.setSchemaRef(allOfField.getValue().asText());
-                            case "maxLength" -> property.setMaxLength(allOfField.getValue().asInt());
-                            case "description" -> property.setDescription(allOfField.getValue().asText());
+                            case "$ref":
+                                property.setSchemaRef(allOfField.getValue().asText());
+                                break;
+                            case "maxLength":
+                                property.setMaxLength(allOfField.getValue().asInt());
+                                break;
+                            case "description":
+                                property.setDescription(allOfField.getValue().asText());
+                                break;
                         }
                     }
                 } else {
@@ -134,18 +180,10 @@ public class YAMLReaderUtil {
                 RequestBody requestBody = null;
                 if (requestBodyNode != null) {
                     Entry<String, JsonNode> requestBodyContent = requestBodyNode.get("content").fields().next();
-                    JsonNode schemaNode = requestBodyContent.getValue().get("schema");
-                    JsonNode schemaRef = schemaNode.get("$ref");
-                    JsonNode schemaType = schemaNode.get("type"); //null if has $ref
-                    Schema schema = null;
-                    if (Objects.nonNull(schemaType) && "object".equals(schemaType.asText())) { //if not a ref
-                        schema = getSchemasByNode(schemaNode).get(0);
-                    }
                     requestBody = RequestBody.builder()
                             .content(Content.builder()
-                                    .schemaRef(Objects.nonNull(schemaRef) ? schemaRef.asText() : null)
-                                    .schema(schema)
                                     .contentType(requestBodyContent.getKey())
+                                    .schema(getSchema(api, requestBodyContent.getValue().get("schema")))
                                     .build())
                             .description(Objects.nonNull(requestBodyNode.get("description")) ? requestBodyNode.get("description").asText() : null)
                             .required(Objects.nonNull(requestBodyNode.get("required")) ? requestBodyNode.get("required").asBoolean() : null)
@@ -159,14 +197,13 @@ public class YAMLReaderUtil {
                     String key = responsesNode.getKey();
                     JsonNode value = responsesNode.getValue();
                     Entry<String, JsonNode> contentNode = value.get("content").fields().next();
-                    JsonNode schemaRef = contentNode.getValue().get("schema").get("$ref");
                     responses.add(Response.builder()
                             .code(key)
-                            .description(value.get("description").asText())
                             .content(Content.builder()
-                                    .schemaRef(Objects.nonNull(schemaRef) ? schemaRef.asText() : null)
                                     .contentType(contentNode.getKey())
+                                    .schema(getSchema(api, contentNode.getValue().get("schema")))
                                     .build())
+                            .description(Objects.nonNull(value.get("description")) ? value.get("description").asText() : null)
                             .required(Objects.nonNull(value.get("required")) ? value.get("required").booleanValue() : null)
                             .build());
                 }
@@ -190,6 +227,25 @@ public class YAMLReaderUtil {
         }
     }
 
+//    private static Schema getSchema(API api, JsonNode schemaNode) {
+//        List<Schema> schemas = new ArrayList<>();
+//        String schemaRef;
+//        Entry<String, JsonNode> firstSchemaNode = schemaNode.fields().next();
+//        switch (firstSchemaNode.getKey()) {
+//            case "$ref":
+//                schemaRef = Objects.nonNull(schemaNode.get("$ref")) ? schemaNode.get("$ref").asText() : null;
+//                schemas.add(getSchemaByRef(api, schemaRef));
+//                break;
+//            case "type":
+//                schemas.addAll(getSchemasByNode(schemaNode));
+//                break;
+//            case "allOf":
+//            case "oneOf":
+//            case "array":
+//        }
+//        return schemas.get(0);
+//    }
+
     private static void fillInfo(API api, JsonNode node) {
         api.setInfo(Info.builder()
                 .title(node.get("title").asText())
@@ -200,7 +256,7 @@ public class YAMLReaderUtil {
     }
 
     public static Schema getSchemaByRef(API api, String schemaRef) {
-        Schema schema = api.getSchemasMap().get(schemaRef);
+        Schema schema = Objects.nonNull(schemaRef) ? api.getSchemasMap().get(schemaRef) : null;
         if (schema == null) return null;
 
         schema.getProperties().forEach(s -> {

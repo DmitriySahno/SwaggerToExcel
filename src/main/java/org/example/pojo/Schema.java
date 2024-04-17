@@ -15,11 +15,12 @@ import java.util.List;
 @AllArgsConstructor
 public class Schema {
     private String name;
-    private String title;
     private String type;
-    private List<String> eNum;
-    private LinkedHashSet<Property> properties;
     private String description;
+    private List<String> eNum;
+
+    //    private String title;
+    private LinkedHashSet<Property> properties;
     private String summary;
 
     @Accessors(chain = true)
@@ -29,10 +30,12 @@ public class Schema {
     @AllArgsConstructor
     public static class Property {
         private String name;
-        private Integer maxLength;
         private String type;
         private String description;
+        private String example;
         private List<String> eNum;
+
+        private Integer maxLength;
         private String format;
         private Float multipleOf;
         private String defaultValue;
@@ -41,6 +44,43 @@ public class Schema {
         private LinkedHashSet<Property> properties;
 
         public Property(String name) { this.name = name; }
+
+        /**
+         * common structure:
+         * String name;
+         * String type; ?
+         * String description; ?
+         * String example; ?
+         * String enum; ?
+         *
+         * type: ARRAY:
+         * Property[] items;
+         *
+         * type: STRING:
+         * Integer maxLength;
+         * String format;
+         *
+         * type: OBJECT:
+         * Property[] properies;
+         *
+         * type: BOOLEAN:
+         * --not specified
+         *
+         * type: NUMBER:
+         * Decimal multipleOf; 0.001
+         * String format; float
+         *
+         * type: INTEGER:
+         * minimum: 0
+         * maximum: 31
+         *
+         * $ref: '#/components/schemas/Remain'
+         *
+         *
+         *
+         *
+         */
+
     }
 
 }

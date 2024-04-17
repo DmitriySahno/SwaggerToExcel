@@ -50,7 +50,7 @@ public class Path {
     @AllArgsConstructor
     public static class RequestBody {
         private String description;
-        private Content content;
+        private Path.Content content;
         private Boolean required;
     }
 
@@ -60,7 +60,6 @@ public class Path {
     @AllArgsConstructor
     public static class Content {
         private String contentType;
-        private String schemaRef; //may be oneOf
         private Schema schema; //may be oneOf
     }
 
