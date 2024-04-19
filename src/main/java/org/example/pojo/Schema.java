@@ -6,10 +6,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
+import java.util.Objects;
 
 /**
  * Schema can be described as:
@@ -56,6 +55,28 @@ public class Schema {
         oneOf.addAll(schemas);
         return this;
     }
+
+    public void fillFrom(Schema schema) {
+        name=Objects.isNull(name) ? schema.name : name;
+        type= Objects.isNull(type) || type.isEmpty()
+                ? schema.type
+                : type.equals("array")
+                    ? "array[" + schema.type + "]"
+                    : type;
+        description= Objects.nonNull(description) ? description : schema.description;
+        ref=schema.ref;
+
+        allOf.addAll(schema.allOf);
+        oneOf.addAll(schema.oneOf);
+        eNum=schema.eNum;
+        format=schema.format;
+        maxLength=schema.maxLength;
+        multipleOf=schema.multipleOf;
+        defaultValue=schema.defaultValue;
+        properties=schema.properties;
+        items=schema.items;
+    }
+
     /**
      * common structure:
      * String name;
@@ -87,29 +108,5 @@ public class Schema {
      *
      * $ref: '#/components/schemas/Remain'
      */
-
-//    @Accessors(chain = true)
-//    @Builder
-//    @Data
-//    @NoArgsConstructor
-//    @AllArgsConstructor
-//    public static class Property {
-//        private String name;
-//        private String type;
-//        private String description;
-//        private String example;
-//        private List<String> eNum;
-//
-//        private Integer maxLength;
-//        private String format;
-//        private Float multipleOf;
-//        private String defaultValue;
-//        private Schema schema;
-//        private String schemaRef;
-//        private LinkedHashSet<Property> properties;
-//
-//        public Property(String name) { this.name = name; }
-//
-//    }
 
 }

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import lombok.NonNull;
 import org.example.pojo.API;
 import org.example.pojo.Info;
 import org.example.pojo.Path;
@@ -56,6 +55,7 @@ public class YAMLReaderUtil {
                         .build();
             case ("array") -> Schema.builder()
                         .type(type.asText())
+                        .description(schemaNode.has("description") ? schemaNode.get("description").asText() : null)
                         .items(getSchemaFromNode(api, schemaNode.get("items")))
                         .build();
             default -> {
@@ -141,10 +141,12 @@ public class YAMLReaderUtil {
                 RequestBody requestBody = null;
                 if (requestBodyNode != null) {
                     Entry<String, JsonNode> requestBodyContent = requestBodyNode.get("content").fields().next();
+                    Schema schema = getSchemaFromNode(api, requestBodyContent.getValue().get("schema")).get(0);
+                    assembleSchema(api, schema);
                     requestBody = RequestBody.builder()
                             .content(Content.builder()
                                     .contentType(requestBodyContent.getKey())
-                                    .schema(getSchemaFromNode(api, requestBodyContent.getValue().get("schema")).get(0)) //TODO: allow multi schemas
+                                    .schema(schema)
                                     .build())
                             .description(Objects.nonNull(requestBodyNode.get("description")) ? requestBodyNode.get("description").asText() : null)
                             .required(Objects.nonNull(requestBodyNode.get("required")) ? requestBodyNode.get("required").asBoolean() : null)
@@ -159,11 +161,13 @@ public class YAMLReaderUtil {
                     String key = responsesNode.getKey();
                     JsonNode value = responsesNode.getValue();
                     Entry<String, JsonNode> contentNode = value.get("content").fields().next();
+                    Schema schema = getSchemaFromNode(api, contentNode.getValue().get("schema")).get(0);
+                    assembleSchema(api, schema);
                     responses.add(Response.builder()
                             .code(key)
                             .content(Content.builder()
                                     .contentType(contentNode.getKey())
-                                    .schema(getSchemaFromNode(api, contentNode.getValue().get("schema")).get(0))
+                                    .schema(schema)
                                     .build())
                             .description(Objects.nonNull(value.get("description")) ? value.get("description").asText() : null)
                             .required(Objects.nonNull(value.get("required")) ? value.get("required").booleanValue() : null)
@@ -189,6 +193,36 @@ public class YAMLReaderUtil {
         }
     }
 
+    //filling refs by schema and all inner schemas
+    private static void assembleSchema(API api, Schema schema) {
+        if (Objects.nonNull(schema.getRef())) {
+            schema.fillFrom(api.getSchemasMap().get(schema.getRef()));
+            assembleSchema(api, schema);
+        }
+        if (Objects.nonNull(schema.getProperties())) {
+            schema.getProperties().forEach(s -> assembleSchema(api, s));
+        }
+        if (Objects.nonNull(schema.getItems())) { //convertion items from array if the number of items is 1
+            if (schema.getItems().size() == 1) {
+                Schema itemSchema = schema.getItems().get(0);
+                if (Objects.nonNull(itemSchema.getRef())) {
+                    schema.fillFrom(api.getSchemasMap().get(itemSchema.getRef()));
+                } else {
+                    schema.fillFrom(itemSchema);
+                }
+                assembleSchema(api, schema);
+            } else {
+                schema.getItems().forEach(s -> assembleSchema(api, s));
+            }
+        }
+        if (Objects.nonNull(schema.getAllOf())) {
+            schema.getAllOf().forEach(s -> assembleSchema(api, s));
+        }
+        if (Objects.nonNull(schema.getOneOf())) {
+            schema.getOneOf().forEach(s -> assembleSchema(api, s));
+        }
+    }
+
     private static void fillInfo(API api, JsonNode node) {
         api.setInfo(Info.builder()
                 .title(node.get("title").asText())
@@ -196,22 +230,6 @@ public class YAMLReaderUtil {
                 .contact(Objects.nonNull(node.get("contact")) ? node.get("contact").asText() : null)
                 .version(Objects.nonNull(node.get("version")) ? node.get("version").asText() : null)
                 .build());
-    }
-
-    public static Schema getSchemaByRef(@NonNull API api,
-                                        @NonNull String schemaRef) {
-        Schema schema = api.getSchemasMap().getOrDefault(schemaRef, null);
-        if (schema == null) {
-            throw new IllegalStateException("Schema is null by ref %s".formatted(schemaRef));
-        }
-//        if (Objects.nonNull(schema.getProperties())) {
-//            schema.getProperties().forEach(s -> {
-//                if (s.getRef() != null) {
-//                    s = getSchemaByRef(api, s.getRef());
-//                }
-//            });
-//        }
-        return schema;
     }
 
 }
